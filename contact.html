@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Свяжитесь с Elsesser & Co. — продайте или оцените свою недвижимость в Екатеринбурге. Бесплатная консультация.">
+    
+    <title>Продать недвижимость | Elsesser & Co.</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="images/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header header--solid" id="header">
+        <div class="container">
+            <div class="header__inner">
+                <a href="index.php" class="header__logo">
+                    <span class="header__logo-text">Elsesser & Co.</span>
+                </a>
+                
+                <nav class="nav">
+                    <ul class="nav__list">
+                        <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
+                        <li><a href="contact.html" class="nav__link nav__link--active">Продать</a></li>
+                        <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
+                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                    </ul>
+                    <a href="contact.html" class="btn btn--primary">Оценка недвижимости</a>
+                </nav>
+                
+                <button class="hamburger" id="hamburger" aria-label="Открыть меню">
+                    <span class="hamburger__line"></span>
+                    <span class="hamburger__line"></span>
+                    <span class="hamburger__line"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar__header">
+            <span class="sidebar__logo">Elsesser & Co.</span>
+            <button class="sidebar__close" id="sidebarClose" aria-label="Закрыть меню">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <nav>
+            <ul>
+                <li class="sidebar__nav-item">
+                    <a href="properties.php?category=sale" class="sidebar__nav-link">Купить недвижимость</a>
+                </li>
+                <li class="sidebar__nav-item">
+                    <a href="properties.php?category=rent" class="sidebar__nav-link">Аренда недвижимости</a>
+                </li>
+                <li class="sidebar__nav-item">
+                    <a href="contact.html" class="sidebar__nav-link">Продать недвижимость</a>
+                </li>
+                <li class="sidebar__nav-item">
+                    <a href="new-buildings.php" class="sidebar__nav-link">Новостройки</a>
+                </li>
+                <li class="sidebar__nav-item">
+                    <a href="about.html" class="sidebar__nav-link">О компании</a>
+                </li>
+                <li class="sidebar__nav-item">
+                    <a href="contact.html" class="sidebar__nav-link">Контакты</a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+    
+    <!-- Overlay -->
+    <div class="overlay" id="overlay"></div>
+
+    <!-- Page Header -->
+    <div class="page-header" style="background-image: url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1920&q=80');">
+        <div class="page-header__content">
+            <h1 class="page-header__title">Продайте свою недвижимость</h1>
+            <p class="page-header__subtitle">
+                Продавайте с уверенностью благодаря экспертным советам, эффективному маркетингу 
+                и команде, которая добивается результатов.
+            </p>
+        </div>
+    </div>
+
+    <!-- Contact Form Section -->
+    <section class="section">
+        <div class="container">
+            <div class="contact-layout">
+                <div class="contact-info">
+                    <h2 class="contact-info__title">Разместите объект с Elsesser & Co.</h2>
+                    <p class="contact-info__text">
+                        Думаете о продаже, изучаете варианты или просто хотите узнать реальную 
+                        стоимость вашей недвижимости? В Elsesser & Co. мы объединяем данные рынка 
+                        в реальном времени с экспертизой на местах, чтобы предоставить точные, 
+                        честные оценки, адаптированные к вашей конкретной недвижимости и локации.
+                    </p>
+                    <p class="contact-info__text">
+                        Наш процесс быстрый, прямолинейный и полностью без обязательств. Просто 
+                        заполните форму, и один из наших опытных специалистов по оценке свяжется 
+                        с вами в течение 24 часов.
+                    </p>
+                    
+                    <!-- Features -->
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-card__icon">
+                                <i class="fas fa-map-marker-alt"></i>
+                            </div>
+                            <h3 class="feature-card__title">Глубокое знание районов</h3>
+                            <p class="feature-card__text">Эксперты по каждому району Екатеринбурга</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card__icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="feature-card__title">300+ специалистов</h3>
+                            <p class="feature-card__text">Команда профессионалов</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-card__icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <h3 class="feature-card__title">Доступны 24/7</h3>
+                            <p class="feature-card__text">Всегда на связи с вами</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="contact-form" id="contactFormWrapper">
+                    <h3 class="contact-form__title">Запросить оценку</h3>
+                    <form id="contactForm" action="/includes/contact.php" method="POST">
+                        <div class="form-group form-group--row">
+                            <input type="text" name="first_name" class="form-input" placeholder="Имя *" required>
+                            <input type="text" name="last_name" class="form-input" placeholder="Фамилия *" required>
+                        </div>
+                        <div class="form-group form-group--row">
+                            <input type="email" name="email" class="form-input" placeholder="Email *" required>
+                            <input type="tel" name="phone" class="form-input" placeholder="Телефон *" required>
+                        </div>
+                        <div class="form-group">
+                            <select name="offering_type" class="form-select" required>
+                                <option value="">Тип предложения *</option>
+                                <option value="sell">Продажа</option>
+                                <option value="rent">Сдача в аренду</option>
+                                <option value="valuation">Только оценка</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="property_address" class="form-input" placeholder="Адрес недвижимости *" required>
+                        </div>
+                        <div class="form-group form-group--row">
+                            <input type="date" name="preferred_date" class="form-input" placeholder="Предпочитаемая дата">
+                            <input type="time" name="preferred_time" class="form-input" placeholder="Предпочитаемое время">
+                        </div>
+                        <div class="form-group">
+                            <textarea name="message" class="form-textarea" placeholder="Дополнительная информация"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn--cta form-submit">
+                            Запросить оценку
+                        </button>
+                        <p id="formMessage" style="margin-top: var(--space-4); text-align: center; display: none;"></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Sell With Us Section -->
+    <section class="section section--gray">
+        <div class="container">
+            <div class="section__header">
+                <h2 class="section__title">Почему стоит продавать с нами?</h2>
+                <p class="section__subtitle" style="max-width: 800px;">
+                    В Elsesser & Co. продажа вашей недвижимости — это больше, чем просто сделка. 
+                    Это партнёрство, построенное на доверии, прозрачности и результатах. Наша миссия — 
+                    обеспечить самый плавный и выгодный опыт продажи на рынке недвижимости Екатеринбурга.
+                </p>
+            </div>
+            
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <h3 class="benefit-card__title">Точные рыночные оценки</h3>
+                    <p class="benefit-card__text">
+                        Оценки на основе реальных данных и локальной аналитики помогут вам 
+                        правильно оценить свою недвижимость.
+                    </p>
+                </div>
+                <div class="benefit-card">
+                    <h3 class="benefit-card__title">Серьёзные покупатели</h3>
+                    <p class="benefit-card__text">
+                        Доступ к одной из крупнейших сетей покупателей в Екатеринбурге, активно 
+                        ищущих недвижимость, похожую на вашу.
+                    </p>
+                </div>
+                <div class="benefit-card">
+                    <h3 class="benefit-card__title">Эффективный маркетинг</h3>
+                    <p class="benefit-card__text">
+                        Профессиональная фотосъёмка, премиум-листинги и платные кампании, 
+                        разработанные для привлечения внимания и запросов.
+                    </p>
+                </div>
+                <div class="benefit-card">
+                    <h3 class="benefit-card__title">Персональный сервис</h3>
+                    <p class="benefit-card__text">
+                        Ваш персональный агент ведёт всё — от показов до переговоров, 
+                        обеспечивая плавный путь продажи.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Info Section -->
+    <section class="section">
+        <div class="container">
+            <div class="about-section">
+                <div class="about-section__content">
+                    <h2>Свяжитесь с нами напрямую</h2>
+                    <p>
+                        Предпочитаете поговорить лично? Наша команда всегда готова помочь вам 
+                        с любыми вопросами о недвижимости.
+                    </p>
+                    <p>
+                        <strong>Телефон:</strong> <a href="tel:+73432505050" style="color: var(--color-accent);">+7 (343) 250-50-50</a>
+                    </p>
+                    <p>
+                        <strong>Email:</strong> <a href="mailto:info@elsesser.ru" style="color: var(--color-accent);">info@elsesser.ru</a>
+                    </p>
+                    <p>
+                        <strong>Адрес:</strong><br>
+                        ООО "Эльсессер и Ко"<br>
+                        БЦ "Высоцкий", 20-й этаж,<br>
+                        ул. Малышева, 51, Екатеринбург
+                    </p>
+                    <p>
+                        <strong>Часы работы:</strong><br>
+                        Понедельник - Пятница: 9:00 - 19:00<br>
+                        Суббота: 10:00 - 17:00<br>
+                        Воскресенье: выходной
+                    </p>
+                    <div class="mt-8">
+                        <a href="chat.php" class="btn btn--primary">
+                            <i class="fas fa-comment"></i>
+                            Чат с агентом
+                        </a>
+                    </div>
+                </div>
+                <div class="about-section__image">
+                    <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=800&q=80" alt="Офис Elsesser & Co.">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__grid">
+                <div class="footer__brand">
+                    <div class="footer__logo">Elsesser & Co.</div>
+                    <a href="tel:+73432505050" class="footer__phone">+7 (343) 250-50-50</a>
+                    <p class="footer__address">
+                        ООО "Эльсессер и Ко"<br>
+                        БЦ "Высоцкий", 20-й этаж,<br>
+                        ул. Малышева, 51, Екатеринбург
+                    </p>
+                    <a href="#" class="footer__directions">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Проложить маршрут
+                    </a>
+                </div>
+                
+                <div class="footer__column">
+                    <h4 class="footer__title">Недвижимость</h4>
+                    <ul class="footer__links">
+                        <li><a href="properties.php?category=sale" class="footer__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="footer__link">Аренда</a></li>
+                        <li><a href="contact.html" class="footer__link">Продать</a></li>
+                        <li><a href="new-buildings.php" class="footer__link">Новостройки</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer__column">
+                    <h4 class="footer__title">Ресурсы</h4>
+                    <ul class="footer__links">
+                        <li><a href="#" class="footer__link">Гид по районам</a></li>
+                        <li><a href="#" class="footer__link">Новости и аналитика</a></li>
+                        <li><a href="#" class="footer__link">Отчёты рынка</a></li>
+                        <li><a href="#" class="footer__link">Видео о недвижимости</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer__column">
+                    <h4 class="footer__title">О нас</h4>
+                    <ul class="footer__links">
+                        <li><a href="about.html" class="footer__link">О компании</a></li>
+                        <li><a href="about.html#team" class="footer__link">Наша команда</a></li>
+                        <li><a href="#" class="footer__link">Карьера</a></li>
+                        <li><a href="contact.html" class="footer__link">Контакты</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer__column">
+                    <h4 class="footer__title">Связаться</h4>
+                    <ul class="footer__links">
+                        <li><a href="#" class="footer__link">Instagram</a></li>
+                        <li><a href="#" class="footer__link">Facebook</a></li>
+                        <li><a href="#" class="footer__link">YouTube</a></li>
+                        <li><a href="#" class="footer__link">LinkedIn</a></li>
+                    </ul>
+                    <div class="footer__social">
+                        <a href="#" class="footer__social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="footer__social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="footer__social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+                        <a href="#" class="footer__social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer__bottom">
+                <p class="footer__copyright">
+                    © 2024 Elsesser & Co. Real Estate LLC. Все права защищены.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/navigation.js"></script>
+    <script src="js/form.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,64 @@
+# Database Configuration
+includes/config/database.php
+php/config/database.php
+
+# Logs
+logs/
+*.log
+
+# Uploads (user-generated content)
+uploads/
+images/properties/*
+!images/properties/.gitkeep
+
+# OSPanel specific
+.osp/
+
+# PHP
+*.php~
+*.php.bak
+.phpintel/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Environment
+.env
+.env.local
+
+# Session files
+session/
+
+# Cache
+cache/
+*.cache
+
+# Backup files
+*.sql.backup
+*.bak
+backup/
+
+# Test files
+test_*.php
+check_*.php
+
+# Assets (generated images from Cursor)
+assets/
+
+# BOM fix scripts (temporary)
+fix_bom_all.php
+test_bom_ascii.php

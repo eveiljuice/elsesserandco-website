@@ -1,0 +1,447 @@
+/* Responsive Styles - Mobile First Approach */
+
+/* ============================================
+   TABLET (768px - 1199px)
+   ============================================ */
+
+@media (max-width: 1199px) {
+    :root {
+        --text-6xl: 3rem;
+        --text-5xl: 2.5rem;
+        --text-4xl: 2rem;
+    }
+
+    .container {
+        padding: 0 var(--space-5);
+    }
+
+    /* Navigation */
+    .nav__list {
+        gap: var(--space-4);
+    }
+
+    .nav__link {
+        font-size: var(--text-xs);
+    }
+
+    /* Properties Grid */
+    .properties-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-6);
+    }
+
+    /* Communities Grid */
+    .communities-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* About Preview */
+    .about-preview {
+        gap: var(--space-10);
+    }
+
+    .about-preview__image img {
+        height: 400px;
+    }
+
+    /* Footer Grid */
+    .footer__grid {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: var(--space-6);
+    }
+
+    .footer__brand {
+        grid-column: 1 / -1;
+        max-width: none;
+        margin-bottom: var(--space-6);
+    }
+
+    /* Values Grid */
+    .values-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-6);
+    }
+
+    /* Benefits Grid */
+    .benefits-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Contact Layout */
+    .contact-layout {
+        gap: var(--space-10);
+    }
+
+    /* CEO Section */
+    .ceo-section {
+        gap: var(--space-8);
+    }
+
+    /* Modal */
+    .modal__body {
+        grid-template-columns: 1fr;
+    }
+
+    .modal__agent {
+        order: -1;
+    }
+}
+
+/* ============================================
+   MOBILE (< 768px)
+   ============================================ */
+
+@media (max-width: 767px) {
+    :root {
+        --text-6xl: 2.5rem;
+        --text-5xl: 2rem;
+        --text-4xl: 1.75rem;
+        --text-3xl: 1.5rem;
+        --header-height: 70px;
+    }
+
+    .container {
+        padding: 0 var(--space-4);
+    }
+
+    /* Header */
+    .nav {
+        display: none;
+    }
+
+    .hamburger {
+        display: flex;
+    }
+
+    .header__logo img {
+        height: 40px;
+    }
+
+    /* Hero */
+    .hero {
+        min-height: 100vh;
+        padding: var(--space-20) 0;
+    }
+
+    .hero__content {
+        padding: var(--space-4);
+    }
+
+    .hero__title {
+        font-size: var(--text-4xl);
+    }
+
+    .hero__subtitle {
+        font-size: var(--text-base);
+    }
+
+    /* Search Box */
+    .search-box {
+        flex-direction: column;
+        padding: var(--space-3);
+    }
+
+    .search-box__toggle {
+        width: 100%;
+        margin-bottom: var(--space-3);
+    }
+
+    .search-box__toggle-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .search-box__input-wrapper {
+        width: 100%;
+        padding: var(--space-3);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-sm);
+    }
+
+    /* Search Tabs */
+    .search-tabs {
+        gap: var(--space-4);
+        flex-wrap: wrap;
+    }
+
+    .search-tabs__item {
+        font-size: var(--text-xs);
+    }
+
+    /* Sections */
+    .section {
+        padding: var(--space-12) 0;
+    }
+
+    .section__header {
+        margin-bottom: var(--space-8);
+    }
+
+    /* Properties Grid */
+    .properties-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    .property-card__image {
+        height: 200px;
+    }
+
+    /* About Preview */
+    .about-preview {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .about-preview__image {
+        order: -1;
+    }
+
+    .about-preview__image img {
+        height: 300px;
+    }
+
+    .about-preview__content {
+        max-width: none;
+    }
+
+    /* Communities Grid */
+    .communities-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+
+    .community-card {
+        height: 200px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        padding: var(--space-12) 0;
+    }
+
+    /* Footer */
+    .footer {
+        padding: var(--space-12) 0 var(--space-6);
+    }
+
+    .footer__grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .footer__brand {
+        margin-bottom: 0;
+    }
+
+    /* Filters */
+    .filters__form {
+        flex-direction: column;
+    }
+
+    .filters__search {
+        width: 100%;
+    }
+
+    .filters__select {
+        width: 100%;
+    }
+
+    .filters__btn {
+        width: 100%;
+    }
+
+    .results-bar {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: flex-start;
+    }
+
+    /* Page Header */
+    .page-header {
+        padding: calc(var(--header-height) + var(--space-10)) 0 var(--space-10);
+    }
+
+    /* About Page */
+    .about-section {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .about-section--reverse {
+        direction: ltr;
+    }
+
+    .about-section__image img {
+        height: 300px;
+    }
+
+    /* Values Grid */
+    .values-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    /* CEO Section */
+    .ceo-section {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .ceo-section__image img {
+        height: 350px;
+    }
+
+    /* Contact Page */
+    .contact-layout {
+        grid-template-columns: 1fr;
+        gap: var(--space-8);
+    }
+
+    .contact-form {
+        padding: var(--space-6);
+    }
+
+    .form-group--row {
+        grid-template-columns: 1fr;
+    }
+
+    /* Features Grid */
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    /* Benefits Grid */
+    .benefits-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-6);
+    }
+
+    /* Modal */
+    .modal {
+        padding: var(--space-4);
+    }
+
+    .modal__gallery {
+        height: 250px;
+    }
+
+    .modal__body {
+        padding: var(--space-6);
+    }
+
+    .modal__specs {
+        flex-wrap: wrap;
+        gap: var(--space-4);
+    }
+
+    /* Buttons */
+    .btn--lg {
+        padding: var(--space-3) var(--space-6);
+        font-size: var(--text-sm);
+    }
+
+    /* Sidebar */
+    .sidebar {
+        max-width: 100%;
+    }
+}
+
+/* ============================================
+   SMALL MOBILE (< 480px)
+   ============================================ */
+
+@media (max-width: 479px) {
+    :root {
+        --text-6xl: 2rem;
+        --text-5xl: 1.75rem;
+        --text-4xl: 1.5rem;
+    }
+
+    .hero__title {
+        font-size: var(--text-3xl);
+    }
+
+    .property-card__footer {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-4);
+    }
+
+    .property-card__whatsapp {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn {
+        font-size: var(--text-xs);
+        padding: var(--space-3) var(--space-4);
+    }
+}
+
+/* ============================================
+   DESKTOP LARGE (1400px+)
+   ============================================ */
+
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .hero__title {
+        font-size: 4.5rem;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .header,
+    .footer,
+    .sidebar,
+    .hamburger,
+    .modal,
+    .overlay {
+        display: none !important;
+    }
+
+    body {
+        font-size: 12pt;
+        color: #000;
+        background: #fff;
+    }
+
+    .hero {
+        min-height: auto;
+        padding: 2rem 0;
+    }
+
+    .hero::before {
+        display: none;
+    }
+
+    .property-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY - REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+

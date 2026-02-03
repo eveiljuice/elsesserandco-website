@@ -1,0 +1,412 @@
+/* ============================================
+   AUTH PAGES STYLES - Elsesser & Co.
+   ============================================ */
+
+/* Auth Page Layout */
+.auth-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-section {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: calc(var(--header-height) + var(--space-8)) 0 var(--space-8);
+}
+
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - var(--header-height) - var(--space-16));
+    background-color: var(--color-white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-xl);
+}
+
+/* Form Wrapper */
+.auth-form-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-12);
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 420px;
+}
+
+.auth-form__title {
+    font-size: var(--text-3xl);
+    color: var(--color-navy);
+    margin-bottom: var(--space-2);
+}
+
+.auth-form__subtitle {
+    color: var(--color-text-light);
+    margin-bottom: var(--space-8);
+}
+
+/* Form Elements */
+.form-group {
+    margin-bottom: var(--space-5);
+}
+
+.form-group--half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+}
+
+.form-group--row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.form-label {
+    display: block;
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    color: var(--color-navy);
+    margin-bottom: var(--space-2);
+}
+
+.form-label__optional {
+    font-weight: var(--font-normal);
+    color: var(--color-text-light);
+}
+
+.form-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.form-input-wrapper i:first-child {
+    position: absolute;
+    left: var(--space-4);
+    color: var(--color-text-light);
+    font-size: var(--text-sm);
+    pointer-events: none;
+}
+
+.form-input-wrapper .form-input {
+    padding-left: calc(var(--space-4) + var(--space-6));
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: var(--text-base);
+    color: var(--color-text);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(194, 157, 102, 0.15);
+}
+
+.form-input::placeholder {
+    color: var(--color-text-lighter);
+}
+
+/* Password Toggle */
+.password-toggle {
+    position: absolute;
+    right: var(--space-4);
+    background: none;
+    border: none;
+    color: var(--color-text-light);
+    cursor: pointer;
+    padding: var(--space-2);
+    transition: color var(--transition-fast);
+}
+
+.password-toggle:hover {
+    color: var(--color-accent);
+}
+
+/* Password Strength */
+.password-strength {
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    min-height: 16px;
+}
+
+.strength-weak {
+    color: #e74c3c;
+}
+
+.strength-medium {
+    color: #f39c12;
+}
+
+.strength-good {
+    color: #3498db;
+}
+
+.strength-strong {
+    color: #27ae60;
+}
+
+/* Checkbox */
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    cursor: pointer;
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+.checkbox-label a {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.checkbox {
+    display: none;
+}
+
+.checkbox-custom {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    position: relative;
+    transition: all var(--transition-fast);
+}
+
+.checkbox:checked + .checkbox-custom {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.checkbox:checked + .checkbox-custom::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 2px;
+    width: 6px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.form-link {
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+}
+
+.form-link:hover {
+    text-decoration: underline;
+}
+
+/* Buttons */
+.btn--full {
+    width: 100%;
+}
+
+.btn--social {
+    width: 100%;
+    padding: var(--space-3) var(--space-6);
+    background-color: var(--color-white);
+    border: 2px solid var(--color-border);
+    color: var(--color-text);
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3);
+}
+
+.btn--social:hover {
+    background-color: var(--color-light-gray);
+    border-color: var(--color-text-light);
+    color: var(--color-navy);
+}
+
+.btn--google i {
+    color: #4285f4;
+}
+
+/* Divider */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    margin: var(--space-6) 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--color-border);
+}
+
+.auth-divider span {
+    padding: 0 var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-light);
+}
+
+/* Auth Footer */
+.auth-footer {
+    text-align: center;
+    margin-top: var(--space-6);
+    font-size: var(--text-sm);
+    color: var(--color-text-light);
+}
+
+.auth-footer a {
+    color: var(--color-accent);
+    font-weight: var(--font-medium);
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Auth Image Side */
+.auth-image {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    padding: var(--space-12);
+}
+
+.auth-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(26, 36, 71, 0.9), rgba(26, 36, 71, 0.3));
+}
+
+.auth-image__content {
+    position: relative;
+    z-index: 1;
+    color: var(--color-white);
+}
+
+.auth-image__content h2 {
+    font-size: var(--text-3xl);
+    color: var(--color-white);
+    margin-bottom: var(--space-3);
+}
+
+.auth-image__content p {
+    font-size: var(--text-lg);
+    opacity: 0.9;
+    margin-bottom: 0;
+}
+
+.auth-benefits {
+    margin-top: var(--space-6);
+    list-style: none;
+}
+
+.auth-benefits li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    font-size: var(--text-base);
+}
+
+.auth-benefits i {
+    color: var(--color-accent);
+}
+
+/* Alerts */
+.alert {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-6);
+}
+
+.alert i {
+    font-size: var(--text-lg);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.alert ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.alert li {
+    font-size: var(--text-sm);
+}
+
+.alert--error {
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+}
+
+.alert--success {
+    background-color: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #16a34a;
+}
+
+.alert--info {
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #2563eb;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .auth-image {
+        display: none;
+    }
+    
+    .auth-form-wrapper {
+        padding: var(--space-8);
+    }
+}
+
+@media (max-width: 480px) {
+    .auth-form-wrapper {
+        padding: var(--space-6);
+    }
+    
+    .form-group--half {
+        grid-template-columns: 1fr;
+    }
+    
+    .auth-form__title {
+        font-size: var(--text-2xl);
+    }
+}

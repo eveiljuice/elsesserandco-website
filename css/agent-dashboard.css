@@ -1,0 +1,268 @@
+/* ============================================
+   Agent Dashboard Styles - Elsesser & Co.
+   Phase 3 - CRM для агентов
+   ============================================ */
+
+/* Dashboard Sidebar */
+.dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+}
+
+/* Status Filters */
+.status-filters {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.status-filter {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--text-sm);
+    color: var(--color-text-light);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-full);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+}
+
+.status-filter:hover,
+.status-filter.active {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+/* Property Item Stats */
+.property-item__stats {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+    font-size: var(--text-xs);
+    color: var(--color-text-light);
+}
+
+.property-item__stats i {
+    margin-right: var(--space-1);
+}
+
+/* Inquiry Mini List */
+.inquiry-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.inquiry-mini {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: var(--space-3);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-md);
+}
+
+.inquiry-mini__name {
+    font-weight: var(--font-medium);
+    font-size: var(--text-sm);
+}
+
+.inquiry-mini__property {
+    font-size: var(--text-xs);
+    color: var(--color-text-light);
+}
+
+/* Viewing List */
+.viewing-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.viewing-item {
+    display: flex;
+    gap: var(--space-4);
+    padding: var(--space-3);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-md);
+}
+
+.viewing-item__date {
+    width: 50px;
+    text-align: center;
+    background-color: var(--color-accent);
+    color: white;
+    border-radius: var(--radius-sm);
+    padding: var(--space-2);
+}
+
+.viewing-item__day {
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    line-height: 1;
+}
+
+.viewing-item__month {
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+}
+
+.viewing-item__content {
+    flex: 1;
+}
+
+.viewing-item__time {
+    font-weight: var(--font-semibold);
+    font-size: var(--text-sm);
+    color: var(--color-accent);
+}
+
+.viewing-item__client {
+    font-size: var(--text-sm);
+    font-weight: var(--font-medium);
+}
+
+.viewing-item__property {
+    font-size: var(--text-xs);
+    color: var(--color-text-light);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--color-text-light);
+}
+
+.empty-state i {
+    font-size: 48px;
+    margin-bottom: var(--space-4);
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin-bottom: var(--space-4);
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+/* Amenities Grid */
+.amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+}
+
+.amenities-grid .checkbox-label {
+    padding: var(--space-3);
+    background-color: var(--color-light-gray);
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+}
+
+.amenities-grid .checkbox-label:hover {
+    background-color: var(--color-border);
+}
+
+.amenities-grid .checkbox-label i {
+    color: var(--color-accent);
+    margin-right: var(--space-2);
+}
+
+/* Image Preview Grid */
+.image-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.image-preview {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-preview--primary {
+    border: 2px solid var(--color-accent);
+}
+
+.image-preview__badge {
+    position: absolute;
+    top: var(--space-1);
+    left: var(--space-1);
+    background-color: var(--color-accent);
+    color: white;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+/* Status Form Inline */
+.status-form {
+    display: inline-block;
+}
+
+/* Button Large */
+.btn--lg {
+    padding: var(--space-4) var(--space-8);
+    font-size: var(--text-base);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+    .admin-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .dashboard-sidebar {
+        order: -1;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .dashboard-sidebar .admin-card {
+        min-width: 300px;
+        flex-shrink: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .status-filters {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: var(--space-2);
+    }
+    
+    .status-filter {
+        white-space: nowrap;
+    }
+    
+    .amenities-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+}
