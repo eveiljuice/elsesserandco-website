@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../includes/config/database.php';
 require_once __DIR__ . '/../../includes/auth/check_auth.php';
+require_once __DIR__ . '/../../includes/push/Notifier.php';
 
 // Только POST запросы
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -62,10 +63,7 @@ if ($recentCount >= 10) {
     exit;
 }
 
-// Защита от XSS
-$message = htmlspecialchars($message, ENT_QUOTES, 'UTF-8');
-
-// Ограничение длины
+// Ограничение длины (XSS-экранирование делается на выводе через escape())
 if (mb_strlen($message) > 2000) {
     $message = mb_substr($message, 0, 2000);
 }
@@ -90,27 +88,31 @@ try {
     $stmt->execute([$messageId]);
     $newMessage = $stmt->fetch();
     
-    // Отправляем email-уведомление (если получатель не онлайн)
-    // Подключаем email функции если существуют
+    // Web Push для получателя
+    $senderName = trim(($newMessage['first_name'] ?? '') . ' ' . ($newMessage['last_name'] ?? ''));
+    $preview = mb_substr($message, 0, 120) . (mb_strlen($message) > 120 ? '…' : '');
+    Notifier::push($receiverId, [
+        'title' => $senderName !== '' ? $senderName : 'Новое сообщение',
+        'body'  => $preview,
+        'url'   => '/chat.php?user=' . $senderId,
+        'tag'   => 'chat-' . $senderId,
+        'renotify' => true,
+    ]);
+
+    // Email-уведомление (если есть send_notification.php)
     $emailFile = __DIR__ . '/../email/send_notification.php';
     if (file_exists($emailFile)) {
         require_once $emailFile;
-        
-        // Получаем данные получателя
+
         $stmt = $pdo->prepare("SELECT email, first_name FROM users WHERE id = ?");
         $stmt->execute([$receiverId]);
         $receiver = $stmt->fetch();
-        
-        // Получаем имя отправителя
-        $stmt = $pdo->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
-        $stmt->execute([$senderId]);
-        $sender = $stmt->fetch();
-        
+
         if ($receiver && function_exists('sendMessageNotification')) {
             sendMessageNotification(
                 $receiver['email'],
                 $receiver['first_name'],
-                $sender['first_name'] . ' ' . $sender['last_name'],
+                $senderName,
                 $message
             );
         }

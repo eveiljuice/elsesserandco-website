@@ -61,19 +61,33 @@ if ($user['logged_in']) {
     $isFavorite = (bool)$stmt->fetch();
 }
 
-// Похожие объекты
+// Похожие объекты — взвешенный скоринг (тот же район + комнаты + цена ±25%),
+// без ORDER BY RAND() (антипаттерн на больших таблицах).
+$priceMin = (float)$property['price'] * 0.75;
+$priceMax = (float)$property['price'] * 1.25;
 $stmt = $pdo->prepare("
-    SELECT p.*, pi.image_url as primary_image
+    SELECT p.*, pi.image_url as primary_image,
+           (
+               (p.district_id <=> ?) * 3
+             + (p.bedrooms = ?) * 2
+             + (p.price BETWEEN ? AND ?) * 2
+           ) AS similarity_score
     FROM properties p
     LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_primary = 1
-    WHERE p.id != ? 
+    WHERE p.id != ?
       AND p.status = 'available'
       AND p.category = ?
-      AND (p.district_id = ? OR p.bedrooms = ?)
-    ORDER BY RAND()
+    ORDER BY similarity_score DESC, p.featured DESC, p.created_at DESC
     LIMIT 3
 ");
-$stmt->execute([$propertyId, $property['category'], $property['district_id'], $property['bedrooms']]);
+$stmt->execute([
+    $property['district_id'],
+    $property['bedrooms'],
+    $priceMin,
+    $priceMax,
+    $propertyId,
+    $property['category'],
+]);
 $similarProperties = $stmt->fetchAll();
 
 // Отзывы об объекте
@@ -109,6 +123,54 @@ $roomsText = match($property['bedrooms']) {
 
 $pageTitle = $property['title_ru'] ?: ($roomsText . ', ' . number_format($property['area_total'] ?? $property['area_sqft'], 1) . ' м²');
 $isRent = $property['category'] === 'rent';
+
+// ===== JSON-LD Schema.org =====
+$canonicalUrl = getBaseUrl() . '/property.php?id=' . $propertyId;
+$jsonLd = [
+    '@context'  => 'https://schema.org',
+    '@type'     => $isRent ? 'Apartment' : 'Residence',
+    'name'      => $pageTitle,
+    'description' => $property['description_ru'] ?? $property['description'] ?? $pageTitle,
+    'url'       => $canonicalUrl,
+    'image'     => array_map(fn($im) => $im['image_url'], $images),
+    'numberOfRooms' => (int)$property['bedrooms'],
+    'floorSize' => [
+        '@type'    => 'QuantitativeValue',
+        'value'    => (float)($property['area_total'] ?? $property['area_sqft']),
+        'unitText' => 'MTK',
+    ],
+    'address' => [
+        '@type'           => 'PostalAddress',
+        'addressLocality' => 'Екатеринбург',
+        'addressRegion'   => 'Свердловская область',
+        'addressCountry'  => 'RU',
+        'streetAddress'   => $property['street'] ?? $property['location'] ?? '',
+    ],
+    'offers' => [
+        '@type'         => 'Offer',
+        'price'         => (float)$property['price'],
+        'priceCurrency' => 'RUB',
+        'availability'  => $property['status'] === 'available' ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        'businessFunction' => $isRent ? 'https://schema.org/LeaseOut' : 'https://schema.org/Sell',
+        'url'           => $canonicalUrl,
+    ],
+];
+if (!empty($property['latitude']) && !empty($property['longitude'])) {
+    $jsonLd['geo'] = [
+        '@type'     => 'GeoCoordinates',
+        'latitude'  => (float)$property['latitude'],
+        'longitude' => (float)$property['longitude'],
+    ];
+}
+if ($reviewsCount > 0 && $avgRating > 0) {
+    $jsonLd['aggregateRating'] = [
+        '@type'       => 'AggregateRating',
+        'ratingValue' => $avgRating,
+        'reviewCount' => (int)$reviewsCount,
+        'bestRating'  => 5,
+        'worstRating' => 1,
+    ];
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -117,8 +179,26 @@ $isRent = $property['category'] === 'rent';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="<?= escape($pageTitle) ?> - <?= formatPrice($property['price']) ?>. <?= escape($property['street'] ?? $property['location']) ?>">
     <title><?= escape($pageTitle) ?> | Elsesser & Co.</title>
+    <link rel="canonical" href="<?= escape($canonicalUrl) ?>">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:title" content="<?= escape($pageTitle) ?> | Elsesser & Co.">
+    <meta property="og:description" content="<?= escape($property['description_ru'] ?? $pageTitle) ?>">
+    <meta property="og:url" content="<?= escape($canonicalUrl) ?>">
+    <?php if (!empty($primaryImage)): ?>
+    <meta property="og:image" content="<?= escape($primaryImage) ?>">
+    <?php endif; ?>
+
+    <!-- JSON-LD Schema.org -->
+    <script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?></script>
 
     <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#00736c">
+    <meta name="vapid-public-key" content="<?= escape((string)Config::get('VAPID_PUBLIC_KEY', '')) ?>">
+    <meta name="csrf-token" content="<?= escape(generateCSRFToken()) ?>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -581,6 +661,52 @@ $isRent = $property['category'] === 'rent';
                 </aside>
             </div>
 
+            <!-- Mortgage Calculator (только для продажи) -->
+            <?php if (!$isRent): ?>
+            <section class="mortgage" data-mortgage>
+                <h2 class="mortgage__title">Ипотечный калькулятор</h2>
+                <div class="mortgage__row">
+                    <div>
+                        <label>Стоимость объекта, ₽</label>
+                        <input type="number" data-mortgage-price min="100000" step="10000"
+                               value="<?= (int)$property['price'] ?>">
+                    </div>
+                    <div>
+                        <label>Первоначальный взнос: <span data-mortgage-down-out>20 %</span></label>
+                        <input type="range" data-mortgage-down min="0" max="90" step="5" value="20">
+                    </div>
+                </div>
+                <div class="mortgage__row">
+                    <div>
+                        <label>Ставка: <span data-mortgage-rate-out>16 %</span></label>
+                        <input type="range" data-mortgage-rate min="3" max="30" step="0.1" value="16">
+                    </div>
+                    <div>
+                        <label>Срок: <span data-mortgage-years-out>20 лет</span></label>
+                        <input type="range" data-mortgage-years min="1" max="30" step="1" value="20">
+                    </div>
+                </div>
+                <div class="mortgage__result">
+                    <div>
+                        <div class="mortgage__result-label">Ежемесячный платёж</div>
+                        <div class="mortgage__result-value" data-mortgage-monthly>—</div>
+                    </div>
+                    <div>
+                        <div class="mortgage__result-label">Общая сумма</div>
+                        <div class="mortgage__result-value" data-mortgage-total>—</div>
+                    </div>
+                    <div>
+                        <div class="mortgage__result-label">Переплата</div>
+                        <div class="mortgage__result-value" data-mortgage-overpay>—</div>
+                    </div>
+                </div>
+                <p style="margin-top:12px;color:var(--color-text-light);font-size:var(--text-xs);">
+                    Расчёт носит ознакомительный характер. Точные условия уточняйте у банка.
+                </p>
+            </section>
+            <script src="js/mortgage.js" defer></script>
+            <?php endif; ?>
+
             <!-- Similar Properties -->
             <?php if (!empty($similarProperties)): ?>
             <section class="similar-section">
@@ -726,6 +852,7 @@ $isRent = $property['category'] === 'rent';
 
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
+    <script src="js/pwa.js" defer></script>
     <script>
         const galleryImages = <?= json_encode(array_column($images, 'image_url')) ?>;
         let currentIndex = 0;

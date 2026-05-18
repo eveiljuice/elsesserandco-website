@@ -1,5 +1,50 @@
 # AGENTS.md
 
+> 📖 **Полный каталог фич, эндпоинтов, таблиц и точек расширения — в [`FEATURES.md`](../FEATURES.md).**
+> Этот файл — про **как кодить**, не про **что есть**.
+
+## 🚦 Quick navigation для нового агента
+
+| Хочешь сделать… | Иди в… |
+|------|--------|
+| Понять, какие фичи уже есть | `FEATURES.md` (root) |
+| Добавить роут / страницу | `*.php` в корне (без фреймворка) |
+| Поправить логику auth | `includes/auth/check_auth.php`, `login.php`, `register.php`, `password_reset.php`, `email_verification.php`, `oauth_helper.php` |
+| Добавить OAuth-провайдера | `/oauth/<provider>/{start,callback}.php` + `OAuthHelper::loginOrRegister()` |
+| Поправить SQL/модель | прямые PDO-запросы в `*.php` (репозиториев пока нет) |
+| Добавить API-эндпоинт (AJAX) | `/php/<group>/<action>.php`, всегда `header('Content-Type: application/json')` + `isLoggedIn()` |
+| Email-уведомление | `Mailer::send()` из `includes/email/Mailer.php` |
+| Push-уведомление | `Notifier::push($userId, ['title','body','url'])` из `includes/push/Notifier.php` |
+| Конфиг из .env | `Config::get('KEY', default)` из `includes/config/Config.php` |
+| Миграция БД | новый файл `database/migrations/NNN_name.sql`, ручной mysql import |
+| Стили | **один** файл `css/style.css` + специфичные (admin, agent-dashboard, auth, chat, dashboard) |
+| JS-модули | `js/<module>.js`, IIFE-обёртка `(function(){...})()`, без bundler'а |
+
+## ⚠️ Что НЕ делать
+
+- ❌ `htmlspecialchars()` **на ввод** перед `INSERT`. Только на вывод через `escape()`.
+- ❌ `ORDER BY RAND()` — антипаттерн, используй взвешенный similarity или random offset.
+- ❌ Дублировать роуты в `/php/auth/*` и `/includes/auth/*` (в v2.1 дубли удалены, единая копия в `/includes/`).
+- ❌ Складывать новые функции в `/php/config/database.php` — этот файл удалён, используй `/includes/config/database.php`.
+- ❌ Подключать новые `*.css` ссылками в `<head>` — добавляй в `css/style.css` (правило проекта: один styles.css).
+- ❌ Использовать `mail()` напрямую — иди через `Mailer::send()`.
+- ❌ Дёргать `getCache()` / `getPropertyRepo()` — функции удалены в v2.1, классы не реализованы.
+- ❌ Логировать пароли, токены, OAuth-секреты.
+
+## ✅ Чек-лист перед изменением кода
+
+1. Read `FEATURES.md` соответствующий раздел.
+2. Проверить — фича не сделана/не запланирована.
+3. Если меняешь схему БД — новый файл миграции (не править существующие).
+4. PHP-файлы — UTF-8 без BOM, начинать с `<?php`, закрывающий `?>` только если после идёт HTML.
+5. Все user-input проходят через prepared statement.
+6. Все user-output экранируется `escape()`.
+7. Для защищённых страниц — `requireLogin()` / `requireAgent()` / `requireAdmin()` в начале файла.
+8. Для AJAX API — проверка `$_SERVER['REQUEST_METHOD']`, проверка авторизации, JSON Content-Type.
+9. После правок: `ReadLints` + ручной smoke-test в браузере.
+
+---
+
 ## Project Overview
 **Elsesser & Co. Real Estate Website** — полнофункциональный сайт агентства недвижимости для Екатеринбурга с системой управления объектами, пользователями и взаимодействием клиент-агент.
 
@@ -419,6 +464,82 @@ error_reporting(E_ALL);
 3. Добавить проверки в `check_auth.php`
 4. Создать sidebar и header для новой роли
 
+### Отправка email-уведомления:
+```php
+require_once __DIR__ . '/includes/email/Mailer.php';
+
+Mailer::send(
+    $userEmail,
+    'Тема письма',
+    '<p>HTML-тело</p>'    // textBody опционален, генерируется из HTML если не передан
+);
+// Транспорт берётся из .env (MAIL_TRANSPORT = smtp | mail | log).
+```
+
+### Отправка push-уведомления:
+```php
+require_once __DIR__ . '/includes/push/Notifier.php';
+
+Notifier::push($receiverUserId, [
+    'title'    => 'Новое сообщение',
+    'body'     => 'Превью сообщения, до 120 символов…',
+    'url'      => '/chat.php?user=' . $senderId,
+    'tag'      => 'chat-' . $senderId,    // объединяет уведомления
+    'renotify' => true,
+]);
+// Notifier автоматически удалит протухшие подписки (404/410).
+```
+
+### Чтение конфига из .env:
+```php
+require_once __DIR__ . '/includes/config/Config.php';
+
+$smtpHost  = Config::get('MAIL_HOST', 'smtp.example.com');
+$debugMode = Config::bool('APP_DEBUG', false);
+$isProd    = Config::isProd();
+$appUrl    = Config::appUrl();   // c учётом APP_URL + HTTPS
+```
+
+### Добавление нового OAuth-провайдера:
+1. Создать `/oauth/<provider>/start.php` — сформировать authorize URL с `OAuthHelper::generateState('<provider>')`.
+2. Создать `/oauth/<provider>/callback.php`:
+   - `OAuthHelper::consumeState('<provider>', $_GET['state'])` — проверка state.
+   - `OAuthHelper::httpPost(token_endpoint, ...)` — обмен code на access_token.
+   - `OAuthHelper::httpGet(profile_endpoint, ['Authorization: Bearer ...'])` — получить профиль.
+   - `OAuthHelper::loginOrRegister('<provider>', $oauthId, $email, $first, $last, $avatar)` — логин/создание.
+   - `header('Location: ' . OAuthHelper::safeRedirect($saved['redirect']))`.
+3. Добавить переменные в `.env.example` и `.env`.
+4. В `login.php` / `register.php` добавить кнопку с проверкой `Config::get('<PROVIDER>_CLIENT_ID')`.
+5. Расширить `users.oauth_provider` ENUM в новой миграции.
+
+### Добавление CSRF на JSON-эндпоинт:
+```php
+// PHP:
+$csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+if (!validateCSRFToken($csrf)) {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => 'Bad CSRF']);
+    exit;
+}
+
+// HTML страница, откуда дёргается API:
+<meta name="csrf-token" content="<?= escape(generateCSRFToken()) ?>">
+
+// JS:
+const token = document.querySelector('meta[name="csrf-token"]').content;
+fetch('/php/...', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': token },
+    body: JSON.stringify({...})
+});
+```
+
+### Добавление миграции:
+1. Создать `database/migrations/NNN_short_name.sql` (NNN — следующий номер, сейчас последний `021`).
+2. Использовать `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` / `CREATE TABLE IF NOT EXISTS` чтобы миграция была идемпотентной.
+3. **Не** редактировать прошлые миграции.
+4. Записать в `FEATURES.md §12.3` и в changelog `AGENTS.md`.
+
 ---
 
 ## Database Schema Quick Reference
@@ -542,9 +663,56 @@ $roomsType = ($_POST['rooms_type'] ?? null) ?: null;
 
 ---
 
-**Last Updated**: 2025-12-15  
-**Version**: 2.0  
+**Last Updated**: 2026-05-18
+**Version**: 2.1
 **Maintainer**: Development Team
+
+---
+
+## v2.1 changes (May 2026)
+
+### Removed
+- Дубли `/php/auth/login.php`, `/php/auth/register.php`, `/php/auth/logout.php`,
+  `/php/favorites/*.php`, `/php/config/database.php` — каноничные версии в `/includes/*`.
+
+### Added
+- `forgot-password.php` + `reset-password.php` + `includes/auth/password_reset.php` + миграция `database/migrations/020_auth_extensions.sql`.
+- `verify-email.php` + `includes/auth/email_verification.php`. Письмо отправляется автоматически при регистрации, повтор — POST `/php/auth/resend_verification.php`.
+- OAuth (`includes/auth/oauth_helper.php`) + папка `/oauth/{vk,yandex,google,telegram}/` с `start.php`/`callback.php`.
+  Конфиг — в `.env` (см. `.env.example`).
+- `analytics.php` — публичная аналитика цен по районам (Chart.js).
+- `sitemap.php` (отдаётся как `/sitemap.xml` через `.htaccess`) + `robots.txt`.
+- PWA: `manifest.webmanifest`, `sw.js`, `offline.html`, `js/pwa.js`.
+- Web Push: `includes/push/WebPush.php` (native VAPID + aes128gcm), `includes/push/Notifier.php`,
+  endpoints `php/push/{subscribe,unsubscribe}.php`. Подключён к чату.
+- `includes/email/Mailer.php` (smtp/mail/log транспорты).
+- `includes/config/Config.php` — простой `.env`-конфиг хелпер.
+- `.htaccess` — security headers, gzip, expires, ЧПУ для `/property/{id}` и `/new-building/{id}`.
+- Hero search автокомплит (`js/autocomplete.js` + endpoint `/php/search/autocomplete.php`).
+- Ипотечный калькулятор (`js/mortgage.js`) на странице объекта.
+- JSON-LD `RealEstateListing`/`Residence` + Open Graph на `property.php`.
+
+### Fixed
+- `htmlspecialchars` **больше не применяется** к данным перед `INSERT` в `users`/`messages` (была double-encoding).
+- `index.php` — инициализация `$favoritesCount = 0` (раньше undefined без логина).
+- `includes/config/database.php` — удалены битые ссылки на `FileCache`/`PropertyRepository`.
+- `property.php` — заменён `ORDER BY RAND()` на взвешенный similar-score (район + комнаты + цена ±25%).
+- `admin/index.php` — 3 запроса вместо 7 на собирание статистики.
+- `includes/auth/check_auth.php` — добавлены `session.cookie_secure`, `session.use_strict_mode`, idle-timeout 2 часа.
+
+### Required setup
+1. Применить миграции:
+   ```bash
+   mysql -u root realestate_db < database/migrations/020_auth_extensions.sql
+   mysql -u root realestate_db < database/migrations/021_web_push_subscriptions.sql
+   ```
+2. Скопировать `.env.example` → `.env`, заполнить SMTP + OAuth ключи.
+3. Для Web Push сгенерировать VAPID:
+   ```bash
+   npx web-push generate-vapid-keys
+   # Положить в .env как VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY
+   ```
+4. На Apache убедиться, что включены `mod_rewrite`, `mod_headers`, `mod_deflate`, `mod_expires`.
 
 ---
 

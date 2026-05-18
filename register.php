@@ -4,10 +4,18 @@
  * Страница регистрации нового пользователя
  */
 
+require_once __DIR__ . '/includes/config/Config.php';
 $data = require_once __DIR__ . '/includes/auth/register.php';
 $errors = $data['errors'];
 $formData = $data['formData'];
 $csrf_token = $data['csrf_token'];
+
+$tgBotUsername = (string)Config::get('TELEGRAM_BOT_USERNAME', '');
+$oauthAvailable = [
+    'vk'     => (bool)Config::get('VK_CLIENT_ID'),
+    'yandex' => (bool)Config::get('YANDEX_CLIENT_ID'),
+    'google' => (bool)Config::get('GOOGLE_CLIENT_ID'),
+];
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -201,9 +209,33 @@ $csrf_token = $data['csrf_token'];
                             Уже есть аккаунт? <a href="login.php">Войдите</a>
                         </p>
                         
-                        <div class="auth-divider"><span>или</span></div>
-                        
-                        <p class="auth-footer" style="margin-top: 0;">
+                        <div class="auth-divider"><span>или зарегистрироваться через</span></div>
+
+                        <div class="oauth-buttons">
+                            <?php if ($oauthAvailable['vk']): ?>
+                            <a href="/oauth/vk/start.php" class="oauth-btn oauth-btn--vk"><i class="fab fa-vk"></i><span>VK</span></a>
+                            <?php endif; ?>
+                            <?php if ($oauthAvailable['yandex']): ?>
+                            <a href="/oauth/yandex/start.php" class="oauth-btn oauth-btn--yandex"><i class="fab fa-yandex"></i><span>Яндекс</span></a>
+                            <?php endif; ?>
+                            <?php if ($oauthAvailable['google']): ?>
+                            <a href="/oauth/google/start.php" class="oauth-btn oauth-btn--google"><i class="fab fa-google"></i><span>Google</span></a>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php if ($tgBotUsername): ?>
+                        <div class="oauth-telegram">
+                            <script async src="https://telegram.org/js/telegram-widget.js?22"
+                                    data-telegram-login="<?= escape($tgBotUsername) ?>"
+                                    data-size="large"
+                                    data-radius="8"
+                                    data-userpic="false"
+                                    data-auth-url="/oauth/telegram/callback.php"
+                                    data-request-access="write"></script>
+                        </div>
+                        <?php endif; ?>
+
+                        <p class="auth-footer" style="margin-top: 16px;">
                             <a href="register-developer.php" style="display: inline-flex; align-items: center; gap: 8px;">
                                 <i class="fas fa-building"></i>
                                 Регистрация для застройщиков

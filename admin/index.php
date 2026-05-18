@@ -12,32 +12,32 @@ requireAdmin();
 
 $pdo = getDBConnection();
 
-// Получаем статистику
+// Получаем статистику одним запросом на таблицу (3 запроса вместо 7).
 $stats = [];
 
-// Количество объектов
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM properties");
-$stats['properties_total'] = $stmt->fetchColumn();
+$row = $pdo->query("
+    SELECT
+        COUNT(*) AS properties_total,
+        SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) AS properties_available,
+        SUM(CASE WHEN featured = 1 THEN 1 ELSE 0 END) AS properties_featured
+    FROM properties
+")->fetch();
+$stats['properties_total']     = (int)($row['properties_total'] ?? 0);
+$stats['properties_available'] = (int)($row['properties_available'] ?? 0);
+$stats['properties_featured']  = (int)($row['properties_featured'] ?? 0);
 
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM properties WHERE status = 'available'");
-$stats['properties_available'] = $stmt->fetchColumn();
+$row = $pdo->query("
+    SELECT
+        COUNT(*) AS inquiries_total,
+        SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) AS inquiries_new,
+        SUM(CASE WHEN status = 'contacted' THEN 1 ELSE 0 END) AS inquiries_contacted
+    FROM inquiries
+")->fetch();
+$stats['inquiries_total']     = (int)($row['inquiries_total'] ?? 0);
+$stats['inquiries_new']       = (int)($row['inquiries_new'] ?? 0);
+$stats['inquiries_contacted'] = (int)($row['inquiries_contacted'] ?? 0);
 
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM properties WHERE featured = 1");
-$stats['properties_featured'] = $stmt->fetchColumn();
-
-// Количество заявок
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM inquiries");
-$stats['inquiries_total'] = $stmt->fetchColumn();
-
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM inquiries WHERE status = 'new'");
-$stats['inquiries_new'] = $stmt->fetchColumn();
-
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM inquiries WHERE status = 'contacted'");
-$stats['inquiries_contacted'] = $stmt->fetchColumn();
-
-// Количество пользователей
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM users");
-$stats['users_total'] = $stmt->fetchColumn();
+$stats['users_total'] = (int)$pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
 
 // Последние заявки
 $stmt = $pdo->query("

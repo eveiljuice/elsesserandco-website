@@ -1530,3 +1530,103 @@ a:hover {
     margin-top: var(--space-8);
 }
 
+/* ============================================
+   AUTOCOMPLETE (hero & top-bar search)
+   ============================================ */
+.autocomplete {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    max-height: 420px;
+    overflow-y: auto;
+    z-index: var(--z-dropdown);
+}
+.autocomplete__item {
+    display: grid;
+    grid-template-columns: 48px 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: var(--color-text);
+    text-decoration: none;
+    border-bottom: 1px solid var(--color-border);
+}
+.autocomplete__item:last-child { border-bottom: 0; }
+.autocomplete__item:hover,
+.autocomplete__item--active { background: var(--color-light-gray); }
+.autocomplete__img {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-sm);
+    background-size: cover; background-position: center;
+    background-color: var(--color-border);
+}
+.autocomplete__icon {
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-sm);
+    background: var(--color-light-gray);
+    color: var(--color-accent);
+    font-size: 18px;
+}
+.autocomplete__title    { font-weight: var(--font-medium); color: var(--color-text); font-size: var(--text-sm); }
+.autocomplete__subtitle { color: var(--color-text-light); font-size: var(--text-xs); margin-top: 2px; }
+.autocomplete__price    { font-weight: var(--font-semibold); color: var(--color-accent); font-size: var(--text-sm); white-space: nowrap; }
+.autocomplete__empty    { padding: 16px; color: var(--color-text-light); font-size: var(--text-sm); text-align: center; }
+
+/* ============================================
+   MORTGAGE CALCULATOR
+   ============================================ */
+.mortgage {
+    background: var(--color-light-gray);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    margin-top: var(--space-6);
+}
+.mortgage__title {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-4);
+}
+.mortgage__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+.mortgage__row label {
+    display: block;
+    font-size: var(--text-sm);
+    color: var(--color-text-light);
+    margin-bottom: 4px;
+}
+.mortgage__row input[type="number"],
+.mortgage__row input[type="range"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
+}
+.mortgage__row input[type="range"] { padding: 0; }
+.mortgage__result {
+    background: #fff;
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-top: var(--space-4);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-4);
+    text-align: center;
+}
+.mortgage__result-label { color: var(--color-text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .04em; }
+.mortgage__result-value { font-size: var(--text-2xl); font-weight: var(--font-bold); color: var(--color-accent); margin-top: 4px; }
+
+@media (max-width: 640px) {
+    .mortgage__row,
+    .mortgage__result { grid-template-columns: 1fr; }
+}
+

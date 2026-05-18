@@ -43,12 +43,11 @@ if (count($featuredProperties) < 6) {
 
 // Получаем избранное пользователя
 $userFavorites = [];
+$favoritesCount = 0;
 if ($user['logged_in']) {
     $stmt = $pdo->prepare("SELECT property_id FROM favorites WHERE user_id = ?");
     $stmt->execute([$user['id']]);
     $userFavorites = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    
-    // Количество избранного
     $favoritesCount = count($userFavorites);
 }
 
@@ -84,6 +83,15 @@ $logoutMessage = isset($_GET['logout']);
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/favicon.png">
 
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#00736c">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="apple-touch-icon" href="/images/favicon.png">
+    <meta name="vapid-public-key" content="<?= htmlspecialchars((string)Config::get('VAPID_PUBLIC_KEY', '')) ?>">
+    <meta name="csrf-token" content="<?= htmlspecialchars(generateCSRFToken()) ?>">
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -113,6 +121,7 @@ $logoutMessage = isset($_GET['logout']);
                         <li><a href="properties.php?type=rent" class="nav__link">Аренда</a></li>
                         <li><a href="contact.html" class="nav__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
+                        <li><a href="analytics.php" class="nav__link">Аналитика</a></li>
                         <li><a href="about.html" class="nav__link">О нас</a></li>
                     </ul>
                     <?php if ($user['logged_in']): ?>
@@ -162,7 +171,8 @@ $logoutMessage = isset($_GET['logout']);
                 </div>
                 <input type="hidden" name="type" value="sale" id="searchType">
                 <div class="search-box__input-wrapper">
-                    <input type="text" name="search" class="search-box__input" placeholder="Район или здание" id="heroSearchInput">
+                    <input type="text" name="search" class="search-box__input" placeholder="Район, ЖК или адрес" id="heroSearchInput"
+                           data-autocomplete autocomplete="off">
                     <button type="submit" class="search-box__btn" aria-label="Поиск">
                         <i class="fas fa-search"></i>
                     </button>
@@ -390,6 +400,8 @@ $logoutMessage = isset($_GET['logout']);
     <!-- Scripts -->
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
+    <script src="js/autocomplete.js"></script>
+    <script src="js/pwa.js" defer></script>
     <script>
         // Search type toggle
         document.querySelectorAll('.search-box__toggle-btn').forEach(btn => {

@@ -1,0 +1,24 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /agent/
+Disallow: /includes/
+Disallow: /php/
+Disallow: /oauth/
+Disallow: /dashboard.php
+Disallow: /chat.php
+Disallow: /favorites.php
+Disallow: /compare.php
+Disallow: /verify-email.php
+Disallow: /reset-password.php
+Disallow: /forgot-password.php
+Disallow: /login.php
+Disallow: /register.php
+Disallow: /test_db.php
+Disallow: /*?*sort=
+Disallow: /*?*page=
+
+Sitemap: /sitemap.xml
+
+User-agent: YandexBot
+Crawl-delay: 1

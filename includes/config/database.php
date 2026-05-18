@@ -7,6 +7,8 @@
 loadEnvironmentFile(__DIR__ . '/../../.env.local');
 loadEnvironmentFile(__DIR__ . '/../../.env');
 
+require_once __DIR__ . '/Config.php';
+
 define('DB_HOST', getEnvironmentValue('REALESTATE_DB_HOST', 'localhost'));
 define('DB_NAME', getEnvironmentValue('REALESTATE_DB_NAME', 'realestate_db'));
 define('DB_USER', getEnvironmentValue('REALESTATE_DB_USER', 'root'));
@@ -133,29 +135,6 @@ function getBaseUrl(): string {
     return $protocol . '://' . $host;
 }
 
-/**
- * Файловый кэш (singleton)
- * @return FileCache
- */
-function getCache(): FileCache {
-    static $cache = null;
-    if ($cache === null) {
-        require_once __DIR__ . '/../cache/FileCache.php';
-        $cache = new FileCache();
-    }
-    return $cache;
-}
-
-/**
- * PropertyRepository (singleton PDO wrapper)
- * @return PropertyRepository
- */
-function getPropertyRepo(): PropertyRepository {
-    static $repo = null;
-    if ($repo === null) {
-        require_once __DIR__ . '/../repository/PropertyRepository.php';
-        PropertyRepository::setPdo(getDBConnection());
-        $repo = new PropertyRepository();
-    }
-    return $repo;
-}
+// Закомментировано: классы FileCache и PropertyRepository пока не реализованы.
+// Когда появятся файлы includes/cache/FileCache.php и includes/repository/PropertyRepository.php
+// — раскомментировать соответствующие хелперы.

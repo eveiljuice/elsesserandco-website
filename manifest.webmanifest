@@ -1,0 +1,23 @@
+{
+  "name": "Elsesser & Co. — Недвижимость Екатеринбурга",
+  "short_name": "Elsesser & Co.",
+  "description": "Каталог квартир и новостроек в Екатеринбурге. Покупка, продажа и аренда.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#00736c",
+  "lang": "ru",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/images/favicon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/images/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/images/favicon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Купить",     "url": "/properties.php?category=sale", "icons": [{ "src": "/images/favicon.png", "sizes": "192x192" }] },
+    { "name": "Аренда",     "url": "/properties.php?category=rent", "icons": [{ "src": "/images/favicon.png", "sizes": "192x192" }] },
+    { "name": "Новостройки","url": "/new-buildings.php",            "icons": [{ "src": "/images/favicon.png", "sizes": "192x192" }] },
+    { "name": "Избранное",  "url": "/favorites.php",                "icons": [{ "src": "/images/favicon.png", "sizes": "192x192" }] }
+  ]
+}

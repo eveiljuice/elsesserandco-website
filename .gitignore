@@ -1,6 +1,7 @@
 # Logs
 logs/
 *.log
+mail.log
 
 # Uploads (user-generated content)
 uploads/

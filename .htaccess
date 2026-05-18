@@ -1,0 +1,69 @@
+# ============================================
+# Elsesser & Co. — Apache config
+# ============================================
+
+Options -Indexes
+ServerSignature Off
+
+# Защита служебных файлов
+<FilesMatch "^(\.env|\.env\..*|\.gitignore|composer\..*|AGENTS\.md|README\.md|test_db\.php)$">
+    Require all denied
+</FilesMatch>
+
+RewriteEngine On
+
+# Sitemap — отдаём через PHP, но по канонiчному URL
+RewriteRule ^sitemap\.xml$ /sitemap.php [L]
+
+# ЧПУ для объектов недвижимости (миграция 006_add_property_slug.sql)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^property/([0-9]+)(?:-[^/]+)?/?$ property.php?id=$1 [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^new-building/([0-9]+)(?:-[^/]+)?/?$ new-building.php?id=$1 [L,QSA]
+
+# Чистые URL: /properties → /properties.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-zA-Z0-9_-]+)/?$ $1.php [L]
+
+# ============================================
+# Compression
+# ============================================
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# ============================================
+# Caching (стат. ресурсы)
+# ============================================
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png  "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css   "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/manifest+json "access plus 1 week"
+    ExpiresByType application/x-web-app-manifest+json "access plus 1 week"
+</IfModule>
+
+# ============================================
+# Security headers
+# ============================================
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "geolocation=(self), camera=(), microphone=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS}=='on'"
+</IfModule>
+
+# Service Worker — корректная отдача
+<Files "sw.js">
+    Header set Service-Worker-Allowed "/"
+    Header set Cache-Control "no-cache"
+</Files>

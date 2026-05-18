@@ -410,3 +410,40 @@
         font-size: var(--text-2xl);
     }
 }
+
+/* ============================================
+   OAuth buttons (VK / Yandex / Google / Telegram)
+   ============================================ */
+.oauth-buttons {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+}
+
+.oauth-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    font-weight: var(--font-medium);
+    font-size: var(--text-sm);
+    color: #fff;
+    text-decoration: none;
+    transition: filter var(--transition-fast), transform var(--transition-fast);
+}
+.oauth-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
+.oauth-btn i { font-size: 18px; }
+
+.oauth-btn--vk     { background: #0077FF; }
+.oauth-btn--yandex { background: #FC3F1D; }
+.oauth-btn--google { background: #1f1f1f; }
+
+.oauth-telegram {
+    margin-top: var(--space-4);
+    display: flex;
+    justify-content: center;
+}
+

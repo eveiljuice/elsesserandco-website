@@ -6,6 +6,7 @@
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/check_auth.php';
+require_once __DIR__ . '/email_verification.php';
 
 // Редирект если уже авторизован
 if (isLoggedIn()) {
@@ -101,32 +102,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([
                         $email,
                         $password_hash,
-                        htmlspecialchars($first_name, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($last_name, ENT_QUOTES, 'UTF-8'),
-                        !empty($phone) ? htmlspecialchars($phone, ENT_QUOTES, 'UTF-8') : null
+                        $first_name,
+                        $last_name,
+                        !empty($phone) ? $phone : null
                     ]);
                     
                     $success = true;
-                    $userId = $pdo->lastInsertId();
-                    
-                    // Отправка приветственного email
-                    $emailFile = __DIR__ . '/../../php/email/send_notification.php';
-                    if (file_exists($emailFile)) {
-                        require_once $emailFile;
-                        sendRegistrationEmail($email, $first_name);
-                    }
-                    
-                    // Автоматический вход после регистрации
+                    $userId = (int)$pdo->lastInsertId();
+
+                    // Отправляем письмо с подтверждением email
+                    sendEmailVerification($userId);
+
+                    // Автоматический вход (email будет помечен как unverified до подтверждения)
                     session_regenerate_id(true);
-                    
+
                     $_SESSION['user_id'] = $userId;
                     $_SESSION['user_name'] = $first_name;
                     $_SESSION['user_email'] = $email;
                     $_SESSION['user_role'] = 'user';
                     $_SESSION['logged_in'] = true;
-                    
-                    // Редирект в личный кабинет
-                    header("Location: /dashboard.php?welcome=1");
+
+                    header("Location: /dashboard.php?welcome=1&verify=1");
                     exit;
                 }
                 
