@@ -1,7 +1,3 @@
-# Database Configuration
-includes/config/database.php
-php/config/database.php
-
 # Logs
 logs/
 *.log
@@ -54,6 +50,7 @@ backup/
 
 # Test files
 test_*.php
+!test_db.php
 check_*.php
 
 # Assets (generated images from Cursor)
