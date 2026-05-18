@@ -1,0 +1,97 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          port: ${{ secrets.VPS_PORT }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 8m
+          script_stop: true
+          script: |
+            set -euo pipefail
+
+            DEPLOY_PATH="${{ secrets.VPS_PATH }}"
+            BACKUP_DIR="/var/backups/elsesserandco"
+            STAMP=$(date +%F-%H%M%S)
+
+            echo "==> [1/6] cd ${DEPLOY_PATH}"
+            cd "${DEPLOY_PATH}"
+
+            echo "==> [2/6] DB backup → ${BACKUP_DIR}/db-${STAMP}.sql.gz"
+            sudo mkdir -p "${BACKUP_DIR}"
+            sudo chown "$(whoami)":"$(whoami)" "${BACKUP_DIR}"
+            # Достаём креды БД из .env (REALESTATE_DB_* — как в includes/config/database.php)
+            set +u
+            export $(grep -E '^REALESTATE_DB_' .env | xargs -d '\n')
+            set -u
+            mysqldump \
+              --single-transaction --quick --routines --triggers \
+              -h "${REALESTATE_DB_HOST:-localhost}" \
+              -u "${REALESTATE_DB_USER}" \
+              -p"${REALESTATE_DB_PASS}" \
+              "${REALESTATE_DB_NAME:-realestate_db}" \
+              | gzip > "${BACKUP_DIR}/db-${STAMP}.sql.gz"
+            # Чистим бэкапы старше 14 дней
+            find "${BACKUP_DIR}" -name 'db-*.sql.gz' -mtime +14 -delete
+
+            echo "==> [3/6] git pull (preserve .env / logs / uploads / cache)"
+            git fetch --all --prune
+            git reset --hard origin/main
+            git clean -fd \
+              -e .env -e .env.local \
+              -e logs/ -e cache/ -e session/ -e uploads/ \
+              -e images/uploads/
+
+            echo "==> [4/6] Applying SQL migrations"
+            php database/migrate.php
+
+            echo "==> [5/6] Fixing permissions"
+            sudo chown -R "${{ secrets.VPS_USER }}":www-data .
+            find . -type d -not -path './.git*' -exec chmod 775 {} \;
+            find . -type f -not -path './.git*' -exec chmod 664 {} \;
+            chmod 600 .env || true
+            # Папки на запись веб-серверу
+            for dir in logs cache session uploads images/uploads; do
+              if [ -d "$dir" ]; then
+                sudo chmod -R 775 "$dir"
+              fi
+            done
+
+            echo "==> [6/6] Reloading services"
+            # Reload PHP-FPM (если есть), иначе Apache (если mod_php)
+            if systemctl is-active --quiet php8.1-fpm; then
+              sudo systemctl reload php8.1-fpm
+              echo "    php8.1-fpm reloaded"
+            fi
+            sudo systemctl reload apache2
+            echo "    apache2 reloaded"
+
+            echo ""
+            echo "==> Deploy OK. HEAD = $(git rev-parse --short HEAD)"
+            echo "==> Backup: ${BACKUP_DIR}/db-${STAMP}.sql.gz"
+
+      - name: Smoke test
+        run: |
+          HTTP=$(curl -sk -o /dev/null -w "%{http_code}" "https://${{ secrets.SMOKE_URL || secrets.VPS_HOST }}/" || echo "000")
+          echo "Homepage HTTP: $HTTP"
+          if [ "$HTTP" != "200" ] && [ "$HTTP" != "301" ] && [ "$HTTP" != "302" ]; then
+            echo "::warning::Smoke test returned $HTTP (expected 200/301/302)"
+          fi

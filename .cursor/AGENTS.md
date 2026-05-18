@@ -20,8 +20,19 @@
 | Стили | **один** файл `css/style.css` + специфичные (admin, agent-dashboard, auth, chat, dashboard) |
 | JS-модули | `js/<module>.js`, IIFE-обёртка `(function(){...})()`, без bundler'а |
 
+## 🚀 Деплой
+
+- **CI/CD:** GitHub Actions, workflow `.github/workflows/deploy.yml`.
+- **Триггер:** любой `push` в `main` → автодеплой на VPS (Apache + PHP 8.1).
+- **Шаги:** `mysqldump` → `git pull` → `php database/migrate.php` → права → reload php-fpm + apache2 → smoke-test.
+- **Откат:** `git reset --hard <hash>` на VPS + reload (см. `FEATURES.md §15.1`).
+- **Локальные правки на проде** — будут затёрты `git reset --hard`. Только через PR.
+- **Миграции** — складывай в `database/migrations/NNN_name.sql`, runner идемпотентный.
+
 ## ⚠️ Что НЕ делать
 
+- ❌ Чинить prod через SSH-правки файлов — это переживёт ровно до следующего пуша.
+- ❌ Коммитить в `main` сырой WIP — задеплоится автоматически. Используй feature-ветки + PR.
 - ❌ `htmlspecialchars()` **на ввод** перед `INSERT`. Только на вывод через `escape()`.
 - ❌ `ORDER BY RAND()` — антипаттерн, используй взвешенный similarity или random offset.
 - ❌ Дублировать роуты в `/php/auth/*` и `/includes/auth/*` (в v2.1 дубли удалены, единая копия в `/includes/`).

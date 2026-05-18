@@ -469,6 +469,107 @@ php test_db.php
 
 ---
 
+## 15.1 CI/CD на VPS *(v2.1)*
+
+Автодеплой настроен через **GitHub Actions → SSH → `git pull`** на VPS.
+Workflow: `.github/workflows/deploy.yml`.
+Триггеры: `push` в `main` + ручной запуск (`workflow_dispatch`).
+
+### Что делает workflow (6 шагов)
+1. SSH в VPS под deploy-юзером.
+2. `mysqldump` БД → `/var/backups/elsesserandco/db-<timestamp>.sql.gz` (ротация 14 дней).
+3. `git fetch && git reset --hard origin/main` + `git clean -fd` с исключениями для `.env`, `logs/`, `cache/`, `session/`, `uploads/`, `images/uploads/`.
+4. `php database/migrate.php` — идемпотентно накатывает новые миграции.
+5. Чинит права: владелец `deploy:www-data`, директории 775, файлы 664, `.env` 600. Папки на запись (`logs/`, `cache/`, `uploads/`) — 775 рекурсивно.
+6. `systemctl reload php8.1-fpm` (если активен) + `systemctl reload apache2` — для сброса opcache.
+
+Дополнительно: smoke-test (GET `/`, ожидаем 200/301/302).
+
+### Подготовка VPS (один раз)
+
+```bash
+# 1. Превращаем существующую папку в git-репо (если ещё не)
+cd /var/www/elsesserandco-site.local
+sudo -u www-data git init
+sudo -u www-data git remote add origin https://github.com/eveiljuice/elsesserandco-website.git
+sudo -u www-data git fetch origin
+sudo -u www-data git reset --hard origin/main   # ⚠ затирает несохранённые локальные правки
+
+# 2. Deploy-юзер
+sudo adduser --disabled-password --gecos "" deploy
+sudo usermod -aG www-data deploy
+sudo chown -R deploy:www-data /var/www/elsesserandco-site.local
+
+# 3. SSH-ключ для GitHub Actions
+sudo -u deploy mkdir -p /home/deploy/.ssh
+sudo -u deploy ssh-keygen -t ed25519 -f /home/deploy/.ssh/github_actions -N ""
+sudo -u deploy bash -c 'cat /home/deploy/.ssh/github_actions.pub >> /home/deploy/.ssh/authorized_keys'
+sudo -u deploy chmod 600 /home/deploy/.ssh/authorized_keys
+sudo cat /home/deploy/.ssh/github_actions   # ← в Secret VPS_SSH_KEY
+
+# 4. Sudoers (без пароля только на нужные команды)
+sudo tee /etc/sudoers.d/deploy <<'EOF'
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl reload php8.1-fpm
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl reload apache2
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl is-active php8.1-fpm
+deploy ALL=(ALL) NOPASSWD: /bin/chown -R deploy\:www-data /var/www/elsesserandco-site.local*
+deploy ALL=(ALL) NOPASSWD: /bin/mkdir -p /var/backups/elsesserandco
+deploy ALL=(ALL) NOPASSWD: /bin/chown deploy\:deploy /var/backups/elsesserandco
+deploy ALL=(ALL) NOPASSWD: /bin/chmod -R 775 /var/www/elsesserandco-site.local/*
+EOF
+sudo chmod 440 /etc/sudoers.d/deploy
+
+# 5. .env на VPS (НЕ в git, лежит только локально на сервере)
+sudo -u deploy cp .env.example .env
+sudo -u deploy nano .env   # заполнить REALESTATE_DB_*, MAIL_*, APP_URL и т.д.
+sudo chmod 600 .env
+
+# 6. Первый прогон миграционного runner-а: пометить уже накатанные SQL
+cd /var/www/elsesserandco-site.local
+sudo -u deploy php database/migrate.php --mark 006_add_property_slug.sql
+sudo -u deploy php database/migrate.php --mark 010_property_history.sql
+sudo -u deploy php database/migrate.php --mark 011_analytics_events.sql
+# Если 020/021 ещё НЕ накатаны на проде — НЕ помечай, дай runner-у их применить:
+sudo -u deploy php database/migrate.php   # применит 020 и 021
+```
+
+### GitHub Secrets (Settings → Secrets → Actions)
+
+| Secret | Значение |
+|--------|----------|
+| `VPS_HOST` | IP или домен VPS |
+| `VPS_USER` | `deploy` |
+| `VPS_PORT` | `22` (или твой нестандартный) |
+| `VPS_SSH_KEY` | приватный ключ из `/home/deploy/.ssh/github_actions` (целиком, включая BEGIN/END) |
+| `VPS_PATH` | `/var/www/elsesserandco-site.local` |
+| `SMOKE_URL` | (опц.) `elsesserandco.com` — если домен ≠ `VPS_HOST` |
+
+### Ручной запуск
+GitHub → Actions → **Deploy to VPS** → Run workflow → выбрать `main`.
+
+### Откат
+```bash
+# На VPS
+cd /var/www/elsesserandco-site.local
+git log --oneline -10                       # найти нужный коммит
+git reset --hard <commit-hash>
+sudo systemctl reload php8.1-fpm
+sudo systemctl reload apache2
+# БД при необходимости — из бэкапа:
+gunzip < /var/backups/elsesserandco/db-YYYY-MM-DD-HHMMSS.sql.gz | mysql -u root realestate_db
+```
+
+### Миграционный runner
+- **Файл:** `database/migrate.php`
+- **Команды:**
+  - `php database/migrate.php` — применить непрокаченные
+  - `php database/migrate.php --status` — список применённых/нет
+  - `php database/migrate.php --mark <file.sql>` — пометить применённой без выполнения
+- **Таблица:** `migrations (name PK, applied_at)` — создаётся автоматически при первом запуске.
+- **Транзакция** на каждую миграцию (rollback при ошибке).
+
+---
+
 ## 16. Карта файлов
 
 ```
