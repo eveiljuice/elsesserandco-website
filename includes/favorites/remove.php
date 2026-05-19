@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../auth/check_auth.php';
+require_once __DIR__ . '/../auth/csrf_json.php';
 
 // Проверка авторизации
 if (!isLoggedIn()) {
@@ -26,6 +27,8 @@ if (!in_array($_SERVER['REQUEST_METHOD'], ['POST', 'DELETE'])) {
     echo json_encode(['success' => false, 'error' => 'Метод не разрешён']);
     exit;
 }
+
+requireJsonCsrf();
 
 // Получение данных
 $input = json_decode(file_get_contents('php://input'), true);

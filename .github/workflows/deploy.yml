@@ -60,10 +60,15 @@ jobs:
               -e logs/ -e cache/ -e session/ -e uploads/ \
               -e images/uploads/
 
-            echo "==> [4/6] Applying SQL migrations"
+            echo "==> [4/7] composer install"
+            if command -v composer >/dev/null 2>&1; then
+              composer install --no-dev --optimize-autoloader --no-interaction
+            fi
+
+            echo "==> [5/7] Applying SQL migrations"
             php database/migrate.php
 
-            echo "==> [5/6] Fixing permissions"
+            echo "==> [6/7] Fixing permissions"
             sudo chown -R "${{ secrets.VPS_USER }}":www-data .
             find . -type d -not -path './.git*' -exec chmod 775 {} \;
             find . -type f -not -path './.git*' -exec chmod 664 {} \;
@@ -75,7 +80,7 @@ jobs:
               fi
             done
 
-            echo "==> [6/6] Reloading services"
+            echo "==> [7/7] Reloading services"
             # Reload PHP-FPM (если есть), иначе Apache (если mod_php)
             if systemctl is-active --quiet php8.1-fpm; then
               sudo systemctl reload php8.1-fpm

@@ -149,34 +149,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $propertyId = $pdo->lastInsertId();
             
-            // Обработка изображений
             if (!empty($_FILES['property_images']['name'][0])) {
-                $uploadDir = __DIR__ . '/../uploads/properties/';
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-                
+                require_once __DIR__ . '/../includes/upload/ImageProcessor.php';
                 $sortOrder = 0;
                 $allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-                
                 foreach ($_FILES['property_images']['tmp_name'] as $key => $tmpName) {
                     if (empty($tmpName) || $sortOrder >= 10) continue;
-                    
-                    $fileType = $_FILES['property_images']['type'][$key];
-                    if (!in_array($fileType, $allowedTypes)) continue;
-                    
-                    $extension = pathinfo($_FILES['property_images']['name'][$key], PATHINFO_EXTENSION);
-                    $fileName = 'property_' . $propertyId . '_' . uniqid() . '_' . time() . '.' . $extension;
-                    $filePath = $uploadDir . $fileName;
-                    
-                    if (move_uploaded_file($tmpName, $filePath)) {
-                        $imageUrl = '/uploads/properties/' . $fileName;
-                        $stmt = $pdo->prepare("
-                            INSERT INTO property_images (property_id, image_url, is_primary, sort_order)
-                            VALUES (?, ?, ?, ?)
-                        ");
-                        $stmt->execute([$propertyId, $imageUrl, $sortOrder === 0 ? 1 : 0, $sortOrder]);
-                        $sortOrder++;
+                    if (!in_array($_FILES['property_images']['type'][$key], $allowedTypes, true)) continue;
+                    try {
+                        $base = 'property_' . $propertyId . '_' . uniqid();
+                        $urls = ImageProcessor::processUpload($tmpName, '/uploads/properties', $base);
+                        $imageUrl = $urls['medium'] ?? $urls['original'] ?? null;
+                        if ($imageUrl) {
+                            $stmt = $pdo->prepare('INSERT INTO property_images (property_id, image_url, is_primary, sort_order) VALUES (?, ?, ?, ?)');
+                            $stmt->execute([$propertyId, $imageUrl, $sortOrder === 0 ? 1 : 0, $sortOrder]);
+                            $sortOrder++;
+                        }
+                    } catch (Throwable $e) {
+                        error_log('ImageProcessor: ' . $e->getMessage());
                     }
                 }
             }
@@ -720,7 +710,9 @@ $pageTitle = 'Добавить объект';
                 <div class="admin-card__body">
                     <div class="form-group">
                         <label class="form-label">Загрузить изображения (до 10 шт.)</label>
-                        <input type="file" name="property_images[]" class="form-input" multiple accept="image/jpeg,image/jpg,image/png,image/webp">
+                        <div id="dropZone" class="upload-dropzone">Перетащите фото сюда или нажмите для выбора</div>
+                        <input type="file" id="property_images" name="property_images[]" class="form-input" multiple accept="image/jpeg,image/jpg,image/png,image/webp" style="margin-top:.5rem;">
+                        <div id="uploadPreview" class="upload-preview"></div>
                         <span class="form-help">Первое изображение будет главным. Форматы: JPG, PNG, WEBP. Максимум 10 фото.</span>
                     </div>
                 </div>
@@ -780,5 +772,7 @@ $pageTitle = 'Добавить объект';
         }
     });
     </script>
+    <script src="/js/api.js"></script>
+    <script src="/js/agent-upload.js"></script>
 </body>
 </html>

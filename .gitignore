@@ -37,6 +37,10 @@ temp/
 .env
 .env.local
 
+# Composer
+/vendor/
+composer.lock
+
 # Session files
 session/
 

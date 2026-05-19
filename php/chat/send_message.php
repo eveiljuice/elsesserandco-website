@@ -8,6 +8,7 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../includes/config/database.php';
 require_once __DIR__ . '/../../includes/auth/check_auth.php';
+require_once __DIR__ . '/../../includes/auth/csrf_json.php';
 require_once __DIR__ . '/../../includes/push/Notifier.php';
 
 // Только POST запросы
@@ -23,6 +24,8 @@ if (!isLoggedIn()) {
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
+
+requireJsonCsrf();
 
 $pdo = getDBConnection();
 $senderId = getCurrentUserId();

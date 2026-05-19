@@ -98,6 +98,9 @@ $welcomeMessage = isset($_GET['welcome']);
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <link rel="stylesheet" href="css/responsive.css">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="csrf-token" content="<?= escape(generateCSRFToken()) ?>">
+    <meta name="vapid-public-key" content="<?= escape((string)Config::get('VAPID_PUBLIC_KEY', '')) ?>">
 </head>
 <body>
     <!-- Header -->
@@ -172,6 +175,20 @@ $welcomeMessage = isset($_GET['welcome']);
             </div>
             <?php endif; ?>
 
+            <?php if (empty($userData['email_verified_at'])): ?>
+            <div class="alert alert--warning" id="verifyEmailBanner">
+                <i class="fas fa-envelope"></i>
+                <span>Подтвердите email — проверьте почту или</span>
+                <button type="button" class="btn btn--small" id="resendVerifyBtn">отправить снова</button>
+            </div>
+            <?php endif; ?>
+
+            <div class="dashboard-pwa card" style="margin-bottom:1.5rem;padding:1rem;">
+                <h3 style="margin:0 0 .5rem;">Приложение и уведомления</h3>
+                <button type="button" class="btn btn--secondary" id="pwaInstallBtn" hidden>Установить приложение</button>
+                <button type="button" class="btn btn--primary" id="pwaPushBtn">Включить push-уведомления</button>
+            </div>
+
             <!-- Welcome Section -->
             <div class="dashboard__header">
                 <div class="dashboard__welcome">
@@ -182,8 +199,11 @@ $welcomeMessage = isset($_GET['welcome']);
                     <a href="properties.php" class="btn btn--primary">
                         <i class="fas fa-search"></i> Найти недвижимость
                     </a>
+                    <?php if ($isAgentUser): ?>
+                    <a href="settings-2fa.php" class="btn btn--secondary">2FA</a>
+                    <?php endif; ?>
                 </div>
-            </div>
+                </div>
 
             <!-- Stats Cards -->
             <div class="stats-grid">
@@ -441,9 +461,27 @@ $welcomeMessage = isset($_GET['welcome']);
     <?php include __DIR__ . '/includes/footer.php'; ?>
 
     <!-- Scripts -->
+    <script src="js/api.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
+    <script src="js/pwa.js" defer></script>
     <script>
+        document.getElementById('resendVerifyBtn')?.addEventListener('click', async () => {
+            try {
+                await EcoApi.fetch('/php/auth/resend_verification.php', { method: 'POST', body: '{}' });
+                alert('Письмо отправлено');
+            } catch (e) { alert('Ошибка отправки'); }
+        });
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('pwaInstallBtn');
+            if (btn) { btn.hidden = false; btn.onclick = async () => { deferredPrompt.prompt(); await deferredPrompt.userChoice; }; }
+        });
+        document.getElementById('pwaPushBtn')?.addEventListener('click', () => {
+            if (window.EcoPush) EcoPush.enable().then(() => alert('Push включены')).catch(() => alert('Не удалось'));
+        });
         // User menu toggle
         const userMenuToggle = document.getElementById('userMenuToggle');
         const userMenuDropdown = document.getElementById('userMenuDropdown');

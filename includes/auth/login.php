@@ -40,32 +40,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $pdo = getDBConnection();
                 
+                require_once __DIR__ . '/totp_helper.php';
+
                 $stmt = $pdo->prepare("
-                    SELECT id, email, password_hash, first_name, last_name, role, is_active 
+                    SELECT id, email, password_hash, first_name, last_name, role, is_active,
+                           failed_login_attempts, locked_until, totp_secret, totp_enabled_at
                     FROM users 
                     WHERE email = ?
                 ");
                 $stmt->execute([$email]);
                 $user = $stmt->fetch();
-                
-                if ($user && password_verify($password, $user['password_hash'])) {
+
+                if ($user && !empty($user['locked_until']) && strtotime((string)$user['locked_until']) > time()) {
+                    $errors[] = 'Аккаунт временно заблокирован. Попробуйте позже.';
+                } elseif ($user && password_verify($password, $user['password_hash'])) {
                     // Проверка активности аккаунта
                     if (!$user['is_active']) {
                         $errors[] = "Ваш аккаунт деактивирован. Обратитесь в поддержку.";
                     } else {
-                        // Успешная авторизация
-                        // Регенерация session ID для безопасности (против session fixation)
+                        $pdo->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?')
+                            ->execute([$user['id']]);
+
+                        if (userRequiresTotp($user)) {
+                            $_SESSION['pending_2fa_user_id'] = $user['id'];
+                            $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? null;
+                            if ($redirect && (!str_starts_with($redirect, '/') || str_contains($redirect, '//'))) {
+                                $redirect = null;
+                            }
+                            $_SESSION['pending_2fa_redirect'] = $redirect ?: match ($user['role']) {
+                                'admin' => '/admin/index.php',
+                                'agent' => '/agent/dashboard.php',
+                                default => '/dashboard.php',
+                            };
+                            header('Location: /verify-2fa.php');
+                            exit;
+                        }
+
                         session_regenerate_id(true);
-                        
-                        // Сохранение данных в сессию
                         $_SESSION['user_id'] = $user['id'];
                         $_SESSION['user_name'] = $user['first_name'];
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['user_role'] = $user['role'];
                         $_SESSION['logged_in'] = true;
                         $_SESSION['login_time'] = time();
-                        
-                        // Обновление времени последнего входа
+                        $_SESSION['last_activity'] = time();
+
                         $updateStmt = $pdo->prepare("UPDATE users SET updated_at = NOW() WHERE id = ?");
                         $updateStmt->execute([$user['id']]);
                         
@@ -90,8 +109,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         exit;
                     }
                 } else {
-                    // Задержка для защиты от brute force
                     sleep(1);
+                    if ($user) {
+                        $attempts = (int)$user['failed_login_attempts'] + 1;
+                        $lockUntil = null;
+                        if ($attempts >= 5) {
+                            $lockUntil = date('Y-m-d H:i:s', time() + 900);
+                            $attempts = 0;
+                        }
+                        $pdo->prepare('UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?')
+                            ->execute([$attempts, $lockUntil, $user['id']]);
+                    }
                     $errors[] = "Неверный email или пароль";
                 }
                 

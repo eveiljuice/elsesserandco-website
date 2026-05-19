@@ -17,7 +17,16 @@
     // State
     let lastMessageId = 0;
     let pollingInterval = null;
+    let eventSource = null;
     let isLoading = false;
+
+    function csrfHeaders() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        return {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': m ? m.content : ''
+        };
+    }
     
     // Initialize
     function init() {
@@ -26,8 +35,7 @@
         // Load initial messages
         loadMessages();
         
-        // Start polling every 3 seconds
-        startPolling();
+        startSSE();
         
         // Form submit
         if (chatForm) {
@@ -50,9 +58,9 @@
         // Handle visibility change (pause polling when tab is hidden)
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                stopPolling();
+                stopSSE();
             } else {
-                startPolling();
+                startSSE();
             }
         });
     }
@@ -179,9 +187,7 @@
             const formData = new FormData(chatForm);
             const response = await fetch('/php/chat/send_message.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: csrfHeaders(),
                 body: JSON.stringify({
                     receiver_id: RECEIVER_ID,
                     message: message,
@@ -254,15 +260,56 @@
         }, 100);
     }
     
-    // Start polling
+    function startSSE() {
+        stopSSE();
+        if (!window.EventSource || !RECEIVER_ID) {
+            startPolling();
+            return;
+        }
+        const url = `/php/chat/stream.php?user_id=${RECEIVER_ID}&last_id=${lastMessageId}`;
+        eventSource = new EventSource(url);
+        eventSource.addEventListener('messages', (ev) => {
+            try {
+                const data = JSON.parse(ev.data);
+                if (data.messages && data.messages.length) {
+                    appendMessages(data.messages.map((m) => ({
+                        id: m.id,
+                        sender_id: parseInt(m.sender_id, 10),
+                        message: m.message,
+                        created_at: m.created_at,
+                        sender_name: m.sender_first_name || '',
+                        is_read: !!m.is_read,
+                        property_id: null,
+                        property_title: null
+                    })));
+                    lastMessageId = data.last_id;
+                    scrollToBottom(true);
+                }
+            } catch (e) { console.error(e); }
+        });
+        eventSource.addEventListener('done', () => {
+            eventSource.close();
+            if (!document.hidden) setTimeout(startSSE, 300);
+        });
+        eventSource.onerror = () => {
+            stopSSE();
+            startPolling();
+        };
+    }
+
+    function stopSSE() {
+        if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+        }
+        stopPolling();
+    }
+
     function startPolling() {
         stopPolling();
-        pollingInterval = setInterval(() => {
-            loadMessages(true);
-        }, 3000);
+        pollingInterval = setInterval(() => loadMessages(true), 3000);
     }
-    
-    // Stop polling
+
     function stopPolling() {
         if (pollingInterval) {
             clearInterval(pollingInterval);

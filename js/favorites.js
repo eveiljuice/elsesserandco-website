@@ -11,13 +11,19 @@
      * @param {number} propertyId - ID объекта
      * @param {HTMLElement} button - Кнопка избранного
      */
+    function csrfHeaders() {
+        const m = document.querySelector('meta[name="csrf-token"]');
+        return {
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': m ? m.content : ''
+        };
+    }
+
     async function toggleFavorite(propertyId, button) {
         try {
             const response = await fetch('/includes/favorites/toggle.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: csrfHeaders(),
                 body: JSON.stringify({ property_id: propertyId })
             });
 
@@ -68,9 +74,7 @@
         try {
             const response = await fetch('/includes/favorites/add.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: csrfHeaders(),
                 body: JSON.stringify({ property_id: propertyId })
             });
 
@@ -109,9 +113,7 @@
         try {
             const response = await fetch('/includes/favorites/remove.php', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: csrfHeaders(),
                 body: JSON.stringify({ property_id: propertyId })
             });
 

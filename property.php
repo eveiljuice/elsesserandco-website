@@ -707,6 +707,29 @@ if ($reviewsCount > 0 && $avgRating > 0) {
             <script src="js/mortgage.js" defer></script>
             <?php endif; ?>
 
+            <section class="utilities-calc" data-utilities-calc>
+                <h2 class="mortgage__title">Расходы на содержание</h2>
+                <div class="mortgage__row">
+                    <label>Площадь, м² <input type="number" data-u-area value="<?= (float)($property['area_total'] ?? $property['area_sqft'] ?? 50) ?>" min="10"></label>
+                    <label>ЖКХ, ₽/м² <input type="number" data-u-hoa value="45" min="0"></label>
+                    <label>Налог, ₽/год <input type="number" data-u-tax value="0" min="0"></label>
+                </div>
+                <p class="utilities-calc__out" data-u-total></p>
+            </section>
+            <script src="js/utilities.js" defer></script>
+
+            <?php if (!empty($property['latitude']) && !empty($property['longitude'])): ?>
+            <section class="property-map">
+                <h2>На карте</h2>
+                <div id="yandexMap" class="yandex-map" style="height:320px;border-radius:12px;"
+                     data-lat="<?= (float)$property['latitude'] ?>"
+                     data-lng="<?= (float)$property['longitude'] ?>"
+                     data-title="<?= escape($property['title_ru'] ?? $property['title']) ?>"></div>
+            </section>
+            <script>window.YANDEX_MAPS_KEY = <?= json_encode(Config::get('YANDEX_MAPS_API_KEY', '')) ?>;</script>
+            <script src="js/yandex-maps.js" defer></script>
+            <?php endif; ?>
+
             <!-- Similar Properties -->
             <?php if (!empty($similarProperties)): ?>
             <section class="similar-section">

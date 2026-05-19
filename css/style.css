@@ -1630,3 +1630,12 @@ a:hover {
     .mortgage__result { grid-template-columns: 1fr; }
 }
 
+/* utilities-calc, upload-dropzone, yandex-map */
+.utilities-calc { margin: var(--space-8) 0; padding: var(--space-6); background: var(--color-bg-alt); border-radius: var(--radius-lg); }
+.utilities-calc__out { margin-top: var(--space-4); font-weight: var(--font-semibold); }
+.upload-dropzone { border: 2px dashed var(--color-border); border-radius: var(--radius-md); padding: var(--space-8); text-align: center; cursor: pointer; background: #fafafa; }
+.upload-dropzone.is-dragover { border-color: var(--color-accent); background: rgba(0,115,108,.05); }
+.upload-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.upload-preview__thumb { width: 80px; height: 60px; object-fit: cover; border-radius: 6px; }
+#catalogResults.is-loading { opacity: .5; pointer-events: none; }
+
