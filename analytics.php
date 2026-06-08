@@ -84,23 +84,23 @@ $cityAvg = $totalCount > 0 ? round($totalAvgSqm / $totalCount) : 0;
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/responsive.css">
     <style>
-        .analytics-hero { background: linear-gradient(135deg, #1a2447 0%, #00736c 100%); color: #fff; padding: 64px 0 32px; }
+        .analytics-hero { background: linear-gradient(135deg, #1a2447 0%, #00736c 100%); color: #fff; padding: calc(var(--header-height) + 48px) 0 40px; }
         .analytics-hero__title { font-family: var(--font-heading); font-size: var(--text-4xl); margin-bottom: 8px; }
         .analytics-hero__subtitle { opacity: .9; max-width: 720px; }
         .analytics-tabs { display: inline-flex; background: rgba(255,255,255,.12); border-radius: 999px; padding: 4px; margin-top: 24px; }
         .analytics-tabs a { padding: 8px 24px; border-radius: 999px; color: #fff; text-decoration: none; font-weight: 500; }
         .analytics-tabs a.active { background: #fff; color: var(--color-accent); }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
-        .stat-card { background: rgba(255,255,255,.10); border-radius: 12px; padding: 16px 20px; }
-        .stat-card__label { opacity: .75; font-size: var(--text-sm); }
-        .stat-card__value { font-size: var(--text-3xl); font-weight: 700; margin-top: 4px; }
+        .analytics-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 24px; }
+        .analytics-stat-card { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.18); border-radius: 12px; padding: 16px 20px; }
+        .analytics-stat-card__label { opacity: .75; font-size: var(--text-sm); }
+        .analytics-stat-card__value { font-size: var(--text-3xl); font-weight: 700; margin-top: 4px; }
         .analytics-section { padding: 48px 0; }
         .analytics-section h2 { font-family: var(--font-heading); font-size: var(--text-3xl); margin-bottom: 24px; }
-        .district-row { display: grid; grid-template-columns: minmax(120px, 1.5fr) 1fr 1fr 1fr 80px; gap: 16px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
+        .district-row { display: grid; grid-template-columns: minmax(160px, 1.5fr) minmax(110px, 1fr) minmax(110px, 1fr) minmax(150px, 1fr) 80px; gap: 16px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--color-border); }
         .district-row--head { font-weight: 600; color: var(--color-text-light); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: .04em; border-bottom: 2px solid var(--color-border); }
         .district-bar { height: 8px; background: var(--color-light-gray); border-radius: 4px; overflow: hidden; margin-top: 4px; }
         .district-bar__fill { height: 100%; background: linear-gradient(90deg, var(--color-accent), var(--color-cta)); }
-        .chart-wrap { background: #fff; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-md); }
+        .chart-wrap { background: #fff; border-radius: 16px; padding: 24px; box-shadow: var(--shadow-md); overflow-x: auto; }
         canvas { max-width: 100%; height: 320px !important; }
         @media (max-width: 768px) {
             .district-row { grid-template-columns: 1fr 1fr; row-gap: 4px; }
@@ -140,18 +140,18 @@ $cityAvg = $totalCount > 0 ? round($totalAvgSqm / $totalCount) : 0;
             <a href="?category=sale" class="<?= $category === 'sale' ? 'active' : '' ?>">Покупка</a>
             <a href="?category=rent" class="<?= $category === 'rent' ? 'active' : '' ?>">Аренда</a>
         </div>
-        <div class="stat-grid">
-            <div class="stat-card">
-                <div class="stat-card__label">Средняя цена за м²</div>
-                <div class="stat-card__value"><?= number_format($cityAvg, 0, '.', ' ') ?> ₽</div>
+        <div class="analytics-stat-grid">
+            <div class="analytics-stat-card">
+                <div class="analytics-stat-card__label">Средняя цена за м²</div>
+                <div class="analytics-stat-card__value"><?= number_format($cityAvg, 0, '.', ' ') ?> ₽</div>
             </div>
-            <div class="stat-card">
-                <div class="stat-card__label">Объектов в выборке</div>
-                <div class="stat-card__value"><?= number_format($totalCount, 0, '.', ' ') ?></div>
+            <div class="analytics-stat-card">
+                <div class="analytics-stat-card__label">Объектов в выборке</div>
+                <div class="analytics-stat-card__value"><?= number_format($totalCount, 0, '.', ' ') ?></div>
             </div>
-            <div class="stat-card">
-                <div class="stat-card__label">Районов с данными</div>
-                <div class="stat-card__value"><?= count($rows) ?></div>
+            <div class="analytics-stat-card">
+                <div class="analytics-stat-card__label">Районов с данными</div>
+                <div class="analytics-stat-card__value"><?= count($rows) ?></div>
             </div>
         </div>
     </div>

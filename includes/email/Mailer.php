@@ -3,7 +3,7 @@
  * Mailer — тонкий адаптер для отправки email.
  *
  * Транспорт берётся из .env (MAIL_TRANSPORT):
- *  - smtp : Native fsockopen-клиент (без зависимостей; для прода рекомендуется PHPMailer/Symfony Mailer).
+ *  - smtp : встроенный SMTP-клиент (fsockopen), без Composer.
  *  - mail : Стандартный mail(). По умолчанию для совместимости.
  *  - log  : Только в логи (для dev — посмотреть письма в logs/mail.log).
  */
@@ -14,7 +14,8 @@ final class Mailer
 {
     public static function send(string $to, string $subject, string $htmlBody, ?string $textBody = null): bool
     {
-        $transport = strtolower((string)Config::get('MAIL_TRANSPORT', 'mail'));
+        $defaultTransport = Config::isProd() ? 'mail' : 'log';
+        $transport = strtolower((string)Config::get('MAIL_TRANSPORT', $defaultTransport));
         $from      = (string)Config::get('MAIL_FROM_ADDRESS', 'noreply@elsesserandco.com');
         $fromName  = (string)Config::get('MAIL_FROM_NAME', 'Elsesser & Co.');
 
@@ -27,9 +28,6 @@ final class Mailer
                     self::log($to, $subject, $wrappedHtml);
                     return true;
                 case 'smtp':
-                    if (is_file(__DIR__ . '/../../vendor/autoload.php')) {
-                        return self::sendPhpMailer($to, $subject, $wrappedHtml, $textBody, $from, $fromName);
-                    }
                     return self::sendSmtp($to, $subject, $wrappedHtml, $textBody, $from, $fromName);
                 case 'mail':
                 default:
@@ -40,32 +38,6 @@ final class Mailer
             self::log($to, $subject . ' [FAILED]', $wrappedHtml);
             return false;
         }
-    }
-
-    private static function sendPhpMailer(string $to, string $subject, string $htmlBody, string $textBody, string $from, string $fromName): bool
-    {
-        require_once __DIR__ . '/../../vendor/autoload.php';
-        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-        $mail->CharSet = 'UTF-8';
-        $mail->isSMTP();
-        $mail->Host = (string)Config::get('MAIL_HOST');
-        $mail->Port = (int)(Config::get('MAIL_PORT') ?? 587);
-        $mail->SMTPAuth = (string)Config::get('MAIL_USERNAME') !== '';
-        $mail->Username = (string)Config::get('MAIL_USERNAME');
-        $mail->Password = (string)Config::get('MAIL_PASSWORD');
-        $enc = strtolower((string)Config::get('MAIL_ENCRYPTION', ''));
-        if ($enc === 'ssl') {
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_SMTPS;
-        } elseif ($enc === 'tls') {
-            $mail->SMTPSecure = PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
-        }
-        $mail->setFrom($from, $fromName);
-        $mail->addAddress($to);
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $htmlBody;
-        $mail->AltBody = $textBody;
-        return $mail->send();
     }
 
     private static function sendMail(string $to, string $subject, string $body, string $from, string $fromName): bool

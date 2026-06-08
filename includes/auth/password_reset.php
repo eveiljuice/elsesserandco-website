@@ -52,6 +52,7 @@ function requestPasswordReset(string $email): array
           . '<p>Ссылка действует 1 час.</p>'
           . '<p style="color:#888;font-size:12px;">' . htmlspecialchars($resetUrl) . '</p>';
 
+    $_SESSION['last_password_reset_url'] = $resetUrl;
     Mailer::send($email, $subject, $body);
 
     return ['ok' => true];

@@ -88,22 +88,17 @@
 ### Setup Commands:
 
 ```bash
-# 1. Клонировать проект в папку OSPanel domains
-cd C:\OSPanel\domains\
+# 1. Клонировать проект в папку веб-сервера / OSPanel domains
 git clone <repo> elsesserandco-site
+cd elsesserandco-site
 
-# 2. Импортировать базу данных
-# Открыть phpMyAdmin или командой:
-mysql -u root < database/create_database.sql
+# 2. Интерактивно создать .env, проверить CLI-зависимости, подготовить БД/папки
+bash scripts/setup.sh
 
-# 3. Настроить database.php (если нужно)
-# Файл: includes/config/database.php
-# DB_HOST = 'localhost'
-# DB_NAME = 'realestate_db'
-# DB_USER = 'root'
-# DB_PASS = ''
+# 3. Проверить миграции
+php database/migrate.php --status
 
-# 4. Запустить OSPanel и открыть:
+# 4. Запустить OSPanel/Apache и открыть:
 http://elsesserandco-site/
 ```
 
@@ -142,6 +137,15 @@ find . -name "*.php" -exec php -l {} \;
 ```bash
 # Создать/пересоздать БД
 mysql -u root < database/create_database.sql
+
+# Интерактивный setup .env + импорт схемы/миграции по подтверждению
+bash scripts/setup.sh
+
+# Статус миграций
+php database/migrate.php --status
+
+# Применить миграции
+php database/migrate.php
 
 # Обновить валюту на RUB
 mysql -u root realestate_db < database/update_currency_to_rub.sql
@@ -212,7 +216,9 @@ User:
 - [ ] `/php/newsletter/subscribe.php` — подписка на рассылку
 
 ### CI/CD:
-- **Нет автоматизированных тестов** (ручное тестирование)
+- GitHub Actions запускает PHP syntax validation перед деплоем (`.github/workflows/deploy.yml`).
+- Автодеплой на VPS: `push` в `main` → SSH → backup БД → `git reset --hard origin/main` → `php database/migrate.php` → permissions → reload services → smoke-test.
+- Первый bootstrap VPS: `bash scripts/vps-bootstrap.sh` на сервере.
 - При добавлении новых функций тестировать все роли (user/agent/admin)
 
 ---
@@ -674,7 +680,7 @@ $roomsType = ($_POST['rooms_type'] ?? null) ?: null;
 
 ---
 
-**Last Updated**: 2026-05-18
+**Last Updated**: 2026-05-31
 **Version**: 2.1
 **Maintainer**: Development Team
 

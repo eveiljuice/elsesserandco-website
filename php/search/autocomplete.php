@@ -40,7 +40,7 @@ try {
             p.street,
             p.location,
             p.district_id,
-            d.name as district_name,
+            COALESCE(d.name_ru, d.name) as district_name,
             pi.image_url as image,
             'property' as result_type
         FROM properties p
@@ -56,6 +56,7 @@ try {
               OR p.location LIKE ?
               OR p.building_name LIKE ?
               OR d.name LIKE ?
+              OR d.name_ru LIKE ?
           )
         ORDER BY p.featured DESC, p.created_at DESC
         LIMIT ?
@@ -64,6 +65,7 @@ try {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         $category,
+        $searchTerm,
         $searchTerm,
         $searchTerm,
         $searchTerm,
@@ -101,7 +103,7 @@ try {
     // Если мало результатов, добавляем поиск по районам
     if (count($results) < $limit) {
         $stmt = $pdo->prepare("
-            SELECT id, name, 
+            SELECT id, COALESCE(name_ru, name) AS name,
                    (SELECT COUNT(*) FROM properties WHERE district_id = ekb_districts.id AND status = 'available' AND category = ?) as count
             FROM ekb_districts 
             WHERE name LIKE ?

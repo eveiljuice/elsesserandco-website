@@ -1,19 +1,8 @@
 <?php
 /**
- * Простой миграционный runner.
- *
- * Запуск:
- *   php database/migrate.php          — применить все непрокаченные миграции
- *   php database/migrate.php --status — показать статус (что применено, что нет)
- *   php database/migrate.php --mark <name.sql>   — пометить миграцию применённой
- *                                                   без выполнения (для первого
- *                                                   запуска на проде, где уже
- *                                                   накатано вручную)
- *
- * Миграции лежат в database/migrations/*.sql и применяются в алфавитном
- * порядке. Имя файла = первичный ключ в таблице `migrations`.
+ * Миграционный runner (MySQL 8.0).
+ * DDL выполняется по одному statement; дубликаты колонок/индексов/таблиц пропускаются.
  */
-
 declare(strict_types=1);
 
 if (PHP_SAPI !== 'cli') {
@@ -29,6 +18,46 @@ $pdo->exec("CREATE TABLE IF NOT EXISTS `migrations` (
     `name` VARCHAR(255) NOT NULL PRIMARY KEY,
     `applied_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci");
+
+/** @return list<string> */
+function migrationSplitStatements(string $sql): array
+{
+    $sql = preg_replace('/--[^\n]*\n/', "\n", $sql) ?? $sql;
+    $sql = preg_replace('/\/\*.*?\*\//s', '', $sql) ?? $sql;
+    $parts = explode(';', $sql);
+    $out = [];
+    foreach ($parts as $part) {
+        $part = trim($part);
+        if ($part === '') {
+            continue;
+        }
+        if (preg_match('/^USE\s+/i', $part)) {
+            continue;
+        }
+        $out[] = $part;
+    }
+    return $out;
+}
+
+function migrationIgnorableError(PDOException $e): bool
+{
+    $code = (int)($e->errorInfo[1] ?? 0);
+    // 1050 table exists, 1060 duplicate column, 1061 duplicate key name, 1062 duplicate entry
+    return in_array($code, [1050, 1060, 1061, 1062], true);
+}
+
+function migrationApplySql(PDO $pdo, string $sql): void
+{
+    foreach (migrationSplitStatements($sql) as $statement) {
+        try {
+            $pdo->exec($statement);
+        } catch (PDOException $e) {
+            if (!migrationIgnorableError($e)) {
+                throw $e;
+            }
+        }
+    }
+}
 
 $args = $argv;
 array_shift($args);
@@ -82,17 +111,12 @@ foreach ($files as $file) {
     }
 
     try {
-        $pdo->beginTransaction();
-        $pdo->exec($sql);
+        migrationApplySql($pdo, $sql);
         $stmt = $pdo->prepare("INSERT INTO migrations (name) VALUES (?)");
         $stmt->execute([$name]);
-        $pdo->commit();
         echo "OK\n";
         $applied_count++;
     } catch (Throwable $e) {
-        if ($pdo->inTransaction()) {
-            $pdo->rollBack();
-        }
         echo "FAIL\n";
         fwrite(STDERR, "Error: " . $e->getMessage() . "\n");
         exit(1);

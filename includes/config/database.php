@@ -42,6 +42,11 @@ function loadEnvironmentFile(string $path): void {
             continue;
         }
 
+        $isQuoted = (str_starts_with($value, '"') && str_ends_with($value, '"'))
+            || (str_starts_with($value, "'") && str_ends_with($value, "'"));
+        if (!$isQuoted && str_contains($value, '#')) {
+            $value = trim(explode('#', $value, 2)[0]);
+        }
         $value = trim($value, "\"'");
         putenv($key . '=' . $value);
         $_ENV[$key] = $value;

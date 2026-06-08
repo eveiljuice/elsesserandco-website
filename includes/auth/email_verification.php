@@ -37,6 +37,7 @@ function sendEmailVerification(int $userId): bool
            . '<p><a href="' . htmlspecialchars($url) . '" style="display:inline-block;padding:12px 24px;background:#00736c;color:#fff;border-radius:8px;text-decoration:none;">Подтвердить email</a></p>'
            . '<p style="color:#888;font-size:12px;">Ссылка действует 24 часа.</p>';
 
+    $_SESSION['last_email_verification_url'] = $url;
     return Mailer::send($user['email'], $subject, $body);
 }
 

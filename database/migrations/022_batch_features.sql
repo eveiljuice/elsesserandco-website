@@ -1,4 +1,4 @@
--- 022: saved searches, 2FA, price alert tracking
+-- 022_batch_features.sql (MySQL 8.0 — без IF NOT EXISTS на ADD COLUMN)
 USE `realestate_db`;
 
 CREATE TABLE IF NOT EXISTS `saved_searches` (
@@ -24,6 +24,5 @@ CREATE TABLE IF NOT EXISTS `saved_search_sent` (
     FOREIGN KEY (`property_id`) REFERENCES `properties`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-ALTER TABLE `users`
-    ADD COLUMN IF NOT EXISTS `totp_secret` VARCHAR(64) NULL DEFAULT NULL AFTER `locked_until`,
-    ADD COLUMN IF NOT EXISTS `totp_enabled_at` DATETIME NULL DEFAULT NULL AFTER `totp_secret`;
+ALTER TABLE `users` ADD COLUMN `totp_secret` VARCHAR(64) NULL DEFAULT NULL AFTER `locked_until`;
+ALTER TABLE `users` ADD COLUMN `totp_enabled_at` DATETIME NULL DEFAULT NULL AFTER `totp_secret`;

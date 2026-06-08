@@ -9,6 +9,7 @@ require_once __DIR__ . '/includes/auth/password_reset.php';
 
 $errors = [];
 $sent = false;
+$devResetUrl = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -20,6 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $result = requestPasswordReset($email);
             $sent = true;
+            if (!Config::isProd()) {
+                $devResetUrl = $_SESSION['last_password_reset_url'] ?? '';
+            }
         }
     }
 }
@@ -76,6 +80,15 @@ $csrf = generateCSRFToken();
                             Если такой email зарегистрирован — мы отправили на него письмо со ссылкой.
                             Ссылка действует 1 час.
                         </div>
+                        <?php if ($devResetUrl): ?>
+                        <div class="alert alert--info">
+                            <i class="fas fa-code"></i>
+                            <div>
+                                Dev-режим: письмо записано в <code>logs/mail.log</code>.<br>
+                                <a href="<?= escape($devResetUrl) ?>">Открыть ссылку сброса пароля</a>
+                            </div>
+                        </div>
+                        <?php endif; ?>
                         <p class="auth-footer"><a href="login.php">← Вернуться ко входу</a></p>
                         <?php else: ?>
                         <form method="POST" action="forgot-password.php" class="form">

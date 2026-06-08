@@ -10,12 +10,51 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  validate:
+    name: Validate PHP syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check PHP CLI
+        run: |
+          set -euo pipefail
+          php -v
+
+      - name: Lint PHP files
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.php' -not -path './.git/*' -print0 \
+            | xargs -0 -n1 php -l
+
   deploy:
     name: Deploy to production
+    needs: validate
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
+      - name: Check required secrets
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in VPS_HOST VPS_USER VPS_PORT VPS_SSH_KEY VPS_PATH; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Missing required GitHub Actions secret: ${name}"
+              missing=1
+            fi
+          done
+          exit "${missing}"
+
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -39,9 +78,16 @@ jobs:
             sudo mkdir -p "${BACKUP_DIR}"
             sudo chown "$(whoami)":"$(whoami)" "${BACKUP_DIR}"
             # Достаём креды БД из .env (REALESTATE_DB_* — как в includes/config/database.php)
-            set +u
-            export $(grep -E '^REALESTATE_DB_' .env | xargs -d '\n')
-            set -u
+            if [ ! -f .env ]; then
+              echo "ERROR: .env is missing on VPS at ${DEPLOY_PATH}" >&2
+              exit 1
+            fi
+            set -a
+            # shellcheck disable=SC1091
+            . ./.env
+            set +a
+            : "${REALESTATE_DB_USER:?REALESTATE_DB_USER is required in .env}"
+            : "${REALESTATE_DB_PASS:?REALESTATE_DB_PASS is required in .env}"
             mysqldump \
               --single-transaction --quick --routines --triggers \
               -h "${REALESTATE_DB_HOST:-localhost}" \
@@ -60,27 +106,22 @@ jobs:
               -e logs/ -e cache/ -e session/ -e uploads/ \
               -e images/uploads/
 
-            echo "==> [4/7] composer install"
-            if command -v composer >/dev/null 2>&1; then
-              composer install --no-dev --optimize-autoloader --no-interaction
-            fi
-
-            echo "==> [5/7] Applying SQL migrations"
+            echo "==> [4/6] Applying SQL migrations"
             php database/migrate.php
 
-            echo "==> [6/7] Fixing permissions"
-            sudo chown -R "${{ secrets.VPS_USER }}":www-data .
+            echo "==> [5/6] Fixing permissions"
+            sudo chown -R "${{ secrets.VPS_USER }}":www-data "${DEPLOY_PATH}"
             find . -type d -not -path './.git*' -exec chmod 775 {} \;
             find . -type f -not -path './.git*' -exec chmod 664 {} \;
             chmod 600 .env || true
             # Папки на запись веб-серверу
             for dir in logs cache session uploads images/uploads; do
               if [ -d "$dir" ]; then
-                sudo chmod -R 775 "$dir"
+                sudo chmod -R 775 "${DEPLOY_PATH}/${dir}"
               fi
             done
 
-            echo "==> [7/7] Reloading services"
+            echo "==> [6/6] Reloading services"
             # Reload PHP-FPM (если есть), иначе Apache (если mod_php)
             if systemctl is-active --quiet php8.1-fpm; then
               sudo systemctl reload php8.1-fpm
@@ -94,9 +135,17 @@ jobs:
             echo "==> Backup: ${BACKUP_DIR}/db-${STAMP}.sql.gz"
 
       - name: Smoke test
+        env:
+          SMOKE_URL: ${{ secrets.SMOKE_URL }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
-          HTTP=$(curl -sk -o /dev/null -w "%{http_code}" "https://${{ secrets.SMOKE_URL || secrets.VPS_HOST }}/" || echo "000")
+          set -euo pipefail
+          TARGET="${SMOKE_URL:-$VPS_HOST}"
+          TARGET="${TARGET#http://}"
+          TARGET="${TARGET#https://}"
+          HTTP=$(curl -sk -o /dev/null -w "%{http_code}" "https://${TARGET}/" || echo "000")
           echo "Homepage HTTP: $HTTP"
           if [ "$HTTP" != "200" ] && [ "$HTTP" != "301" ] && [ "$HTTP" != "302" ]; then
-            echo "::warning::Smoke test returned $HTTP (expected 200/301/302)"
+            echo "::error::Smoke test returned $HTTP (expected 200/301/302)"
+            exit 1
           fi

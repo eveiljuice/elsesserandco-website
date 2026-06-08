@@ -30,4 +30,9 @@ if (!validateCSRFToken($_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? 
 $userId = (int)getCurrentUserId();
 $ok = sendEmailVerification($userId);
 
-echo json_encode(['success' => $ok]);
+$response = ['success' => $ok];
+if (!Config::isProd() && !empty($_SESSION['last_email_verification_url'])) {
+    $response['dev_verify_url'] = $_SESSION['last_email_verification_url'];
+}
+
+echo json_encode($response);
