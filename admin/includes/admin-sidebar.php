@@ -83,6 +83,20 @@ $currentCategory = $_GET['category'] ?? '';
             <span class="admin-nav__badge"><?= $pendingReviews ?></span>
             <?php endif; ?>
         </a>
+
+        <div class="admin-nav__divider">Администрирование</div>
+
+        <a href="users.php" class="admin-nav__item <?= $currentPage === 'users.php' ? 'admin-nav__item--active' : '' ?>">
+            <i class="fas fa-users"></i>
+            <span>Пользователи</span>
+            <?php
+            $newUsersStmt = $pdo->query("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL 7 DAY");
+            $newUsersCount = (int)$newUsersStmt->fetchColumn();
+            if ($newUsersCount > 0):
+            ?>
+            <span class="admin-nav__badge"><?= $newUsersCount ?></span>
+            <?php endif; ?>
+        </a>
     </nav>
     
     <div class="admin-sidebar__footer">
