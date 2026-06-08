@@ -9,13 +9,13 @@
     <nav>
         <ul>
             <li class="sidebar__nav-item">
-                <a href="properties.php?type=sale" class="sidebar__nav-link">
+                <a href="properties.php?category=sale" class="sidebar__nav-link">
                     Купить недвижимость
                     <i class="fas fa-chevron-right"></i>
                 </a>
             </li>
             <li class="sidebar__nav-item">
-                <a href="properties.php?type=rent" class="sidebar__nav-link">
+                <a href="properties.php?category=rent" class="sidebar__nav-link">
                     Аренда недвижимости
                     <i class="fas fa-chevron-right"></i>
                 </a>

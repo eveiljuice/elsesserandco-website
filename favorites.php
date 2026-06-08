@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Favorites Page - Elsesser & Co.
  * Страница избранного пользователя
@@ -68,8 +68,8 @@ $favoritesCount = count($favorites);
                 
                 <nav class="nav">
                     <ul class="nav__list">
-                        <li><a href="properties.php?type=sale" class="nav__link">Купить</a></li>
-                        <li><a href="properties.php?type=rent" class="nav__link">Аренда</a></li>
+                        <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="favorites.php" class="nav__link nav__link--active">
                             <i class="fas fa-heart"></i> Избранное
                             <?php if ($favoritesCount > 0): ?>
@@ -120,7 +120,7 @@ $favoritesCount = count($favorites);
             <?php else: ?>
             <div class="properties-grid favorites-grid-full">
                 <?php foreach ($favorites as $property): ?>
-                <article class="property-card" data-id="<?= $property['id'] ?>" data-property-id="<?= $property['id'] ?>">
+                <article class="property-card property-card--compact" data-id="<?= $property['id'] ?>" data-property-id="<?= $property['id'] ?>">
                     <div class="property-card__image">
                         <a href="property.php?id=<?= $property['id'] ?>">
                             <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80') ?>" 
@@ -134,14 +134,14 @@ $favoritesCount = count($favorites);
                             <i class="fas fa-heart"></i>
                         </button>
                         <div class="property-card__type">
-                            <?= $property['listing_type'] === 'rent' ? 'Аренда' : 'Продажа' ?>
+                            <?= $property['category'] === 'rent' ? 'Аренда' : 'Продажа' ?>
                         </div>
                     </div>
                     <div class="property-card__body">
                         <div class="property-card__price">
                             <?= formatPrice($property['price']) ?>
-                            <?php if ($property['listing_type'] === 'rent'): ?>
-                            <span class="property-card__period">/год</span>
+                            <?php if ($property['category'] === 'rent'): ?>
+                            <span class="property-card__period">/мес</span>
                             <?php endif; ?>
                         </div>
                         <h3 class="property-card__title">
@@ -179,95 +179,5 @@ $favoritesCount = count($favorites);
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
 
-    <style>
-        .favorites-page {
-            padding: calc(var(--header-height) + var(--space-8)) 0 var(--space-16);
-            min-height: calc(100vh - 200px);
-            background-color: var(--color-light-gray);
-        }
-        
-        .favorites-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: var(--space-8);
-            flex-wrap: wrap;
-            gap: var(--space-4);
-        }
-        
-        .favorites-header h1 {
-            font-size: var(--text-3xl);
-            margin-bottom: var(--space-2);
-        }
-        
-        .favorites-header p {
-            color: var(--color-text-light);
-            margin: 0;
-        }
-        
-        .favorites-grid-full {
-            grid-template-columns: repeat(3, 1fr);
-        }
-        
-        .property-card__type {
-            position: absolute;
-            bottom: var(--space-3);
-            left: var(--space-3);
-            padding: var(--space-1) var(--space-3);
-            background-color: var(--color-navy);
-            color: var(--color-white);
-            font-size: var(--text-xs);
-            font-weight: var(--font-medium);
-            border-radius: var(--radius-sm);
-            z-index: 2;
-        }
-        
-        .property-card__title a {
-            color: var(--color-text);
-        }
-        
-        .property-card__title a:hover {
-            color: var(--color-accent);
-        }
-        
-        .property-card__period {
-            font-size: var(--text-sm);
-            font-weight: var(--font-normal);
-            color: var(--color-text-light);
-        }
-        
-        .property-card__favorite {
-            position: absolute;
-            top: var(--space-3);
-            right: var(--space-3);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #dc2626;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-            z-index: 2;
-        }
-        
-        .property-card__favorite:hover {
-            background-color: #dc2626;
-            color: var(--color-white);
-        }
-        
-        @media (max-width: 1024px) {
-            .favorites-grid-full {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        @media (max-width: 640px) {
-            .favorites-grid-full {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </body>
 </html>

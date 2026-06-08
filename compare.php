@@ -45,7 +45,7 @@ $compareFields = [
     'location' => 'Расположение',
     'community' => 'Район',
     'property_type' => 'Тип',
-    'listing_type' => 'Листинг',
+    'category' => 'Листинг',
     'bedrooms' => 'Спален',
     'bathrooms' => 'Ванных',
     'area_sqft' => 'Площадь (м²)',
@@ -92,8 +92,8 @@ $compareFields = [
                 
                 <nav class="nav">
                     <ul class="nav__list">
-                        <li><a href="properties.php?type=sale" class="nav__link">Купить</a></li>
-                        <li><a href="properties.php?type=rent" class="nav__link">Аренда</a></li>
+                        <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="contact.html" class="nav__link">Продать</a></li>
                         <li><a href="about.html" class="nav__link">О нас</a></li>
                     </ul>
@@ -185,7 +185,7 @@ $compareFields = [
                                 switch ($field) {
                                     case 'price':
                                         echo formatPrice($value);
-                                        if ($property['listing_type'] === 'rent') echo ' /год';
+                                        if ($property['category'] === 'rent') echo ' /мес';
                                         break;
                                     case 'area_sqft':
                                         echo $value ? number_format($value) . ' м²' : '-';
@@ -193,7 +193,7 @@ $compareFields = [
                                     case 'property_type':
                                         echo ucfirst($value);
                                         break;
-                                    case 'listing_type':
+                                    case 'category':
                                         echo $value === 'rent' ? 'Аренда' : 'Продажа';
                                         break;
                                     case 'furnished':

@@ -105,8 +105,8 @@ $pageTitle = 'Сообщения';
                 
                 <nav class="nav">
                     <ul class="nav__list">
-                        <li><a href="properties.php?type=sale" class="nav__link">Купить</a></li>
-                        <li><a href="properties.php?type=rent" class="nav__link">Аренда</a></li>
+                        <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="favorites.php" class="nav__link"><i class="fas fa-heart"></i> Избранное</a></li>
                     </ul>
                     <a href="dashboard.php" class="btn btn--primary">

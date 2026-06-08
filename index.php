@@ -117,8 +117,8 @@ $logoutMessage = isset($_GET['logout']);
                 
                 <nav class="nav">
                     <ul class="nav__list">
-                        <li><a href="properties.php?type=sale" class="nav__link">Купить</a></li>
-                        <li><a href="properties.php?type=rent" class="nav__link">Аренда</a></li>
+                        <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="contact.html" class="nav__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
                         <li><a href="analytics.php" class="nav__link">Аналитика</a></li>
@@ -169,7 +169,7 @@ $logoutMessage = isset($_GET['logout']);
                     <button type="button" class="search-box__toggle-btn search-box__toggle-btn--active" data-type="sale">Купить</button>
                     <button type="button" class="search-box__toggle-btn" data-type="rent">Аренда</button>
                 </div>
-                <input type="hidden" name="type" value="sale" id="searchType">
+                <input type="hidden" name="category" value="sale" id="searchType">
                 <div class="search-box__input-wrapper">
                     <input type="text" name="search" class="search-box__input" placeholder="Район, ЖК или адрес" id="heroSearchInput"
                            data-autocomplete autocomplete="off">
@@ -214,8 +214,8 @@ $logoutMessage = isset($_GET['logout']);
                     <div class="property-card__body">
                         <div class="property-card__price">
                             <?= formatPrice($property['price']) ?>
-                            <?php if ($property['listing_type'] === 'rent'): ?>
-                            <span class="property-card__period">/год</span>
+                            <?php if ($property['category'] === 'rent'): ?>
+                            <span class="property-card__period">/мес</span>
                             <?php endif; ?>
                         </div>
                         <h3 class="property-card__title">
@@ -355,8 +355,8 @@ $logoutMessage = isset($_GET['logout']);
                 <div class="footer__column">
                     <h4 class="footer__title">Недвижимость</h4>
                     <ul class="footer__links">
-                        <li><a href="properties.php?type=sale" class="footer__link">Купить</a></li>
-                        <li><a href="properties.php?type=rent" class="footer__link">Аренда</a></li>
+                        <li><a href="properties.php?category=sale" class="footer__link">Купить</a></li>
+                        <li><a href="properties.php?category=rent" class="footer__link">Аренда</a></li>
                         <li><a href="contact.html" class="footer__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="footer__link">Новостройки</a></li>
                     </ul>
@@ -459,69 +459,5 @@ $logoutMessage = isset($_GET['logout']);
         }
     </script>
     
-    <style>
-        .property-card__favorite {
-            position: absolute;
-            top: var(--space-3);
-            right: var(--space-3);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.9);
-            color: var(--color-text-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-            z-index: 2;
-        }
-        
-        .property-card__favorite:hover {
-            background-color: var(--color-white);
-            color: #dc2626;
-        }
-        
-        .property-card__favorite.favorite-btn--active {
-            color: #dc2626;
-        }
-        
-        .property-card__period {
-            font-size: var(--text-sm);
-            font-weight: var(--font-normal);
-            color: var(--color-text-light);
-        }
-        
-        .nav__link--icon {
-            position: relative;
-        }
-        
-        .nav__link--icon .badge {
-            position: absolute;
-            top: -5px;
-            right: -8px;
-            min-width: 16px;
-            height: 16px;
-            padding: 0 4px;
-            font-size: 10px;
-        }
-        
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            font-size: 10px;
-            font-weight: var(--font-bold);
-            background-color: var(--color-accent);
-            color: var(--color-white);
-            border-radius: var(--radius-full);
-        }
-        
-        .sidebar__nav-link--logout {
-            color: #dc2626;
-        }
-    </style>
 </body>
 </html>
