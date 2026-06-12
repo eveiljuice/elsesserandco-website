@@ -60,3 +60,6 @@ assets/
 # BOM fix scripts (temporary)
 fix_bom_all.php
 test_bom_ascii.php
+
+# Local scratch files
+m2
