@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Property Detail Page - Elsesser & Co.
  * Детальная карточка объекта недвижимости (Екатеринбург)
@@ -737,35 +737,38 @@ if ($reviewsCount > 0 && $avgRating > 0) {
             <?php if (!empty($similarProperties)): ?>
             <section class="similar-section">
                 <h2 class="similar-section__title">Похожие объекты</h2>
-                <div class="properties-grid properties-grid--3">
-                    <?php foreach ($similarProperties as $similar): ?>
-                    <article class="property-card property-card--compact">
-                        <div class="property-card__image">
-                            <a href="property.php?id=<?= $similar['id'] ?>">
-                                <img src="<?= escape($similar['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>" 
-                                     alt="" class="property-card__img" loading="lazy">
-                            </a>
-                        </div>
-                        <div class="property-card__body">
-                            <div class="property-card__price">
-                                <?= formatPrice($similar['price']) ?>
-                                <?php if ($similar['category'] === 'rent'): ?><span>/мес</span><?php endif; ?>
-                            </div>
-                            <h3 class="property-card__title">
+                <div class="similar-slider" data-similar-slider>
+                    <div class="similar-slider__track">
+                        <?php foreach ($similarProperties as $similar): ?>
+                        <article class="property-card property-card--compact similar-slider__slide">
+                            <div class="property-card__image">
                                 <a href="property.php?id=<?= $similar['id'] ?>">
-                                    <?= escape($similar['title_ru'] ?? $similar['title']) ?>
+                                    <img src="<?= escape($similar['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>"
+                                         alt="" class="property-card__img" loading="lazy">
                                 </a>
-                            </h3>
-                            <div class="property-card__specs">
-                                <span><i class="fas fa-door-open"></i> <?= $similar['bedrooms'] ?></span>
-                                <span><i class="fas fa-ruler-combined"></i> <?= number_format($similar['area_total'] ?? $similar['area_sqft'], 1) ?> м²</span>
-                                <?php if ($similar['floor_number']): ?>
-                                <span><i class="fas fa-building"></i> <?= $similar['floor_number'] ?>/<?= $similar['total_floors'] ?: '?' ?></span>
-                                <?php endif; ?>
                             </div>
-                        </div>
-                    </article>
-                    <?php endforeach; ?>
+                            <div class="property-card__body">
+                                <div class="property-card__price">
+                                    <?= formatPrice($similar['price']) ?>
+                                    <?php if ($similar['category'] === 'rent'): ?><span>/мес</span><?php endif; ?>
+                                </div>
+                                <h3 class="property-card__title">
+                                    <a href="property.php?id=<?= $similar['id'] ?>">
+                                        <?= escape($similar['title_ru'] ?? $similar['title']) ?>
+                                    </a>
+                                </h3>
+                                <div class="property-card__specs">
+                                    <span><i class="fas fa-door-open"></i> <?= $similar['bedrooms'] ?></span>
+                                    <span><i class="fas fa-ruler-combined"></i> <?= number_format($similar['area_total'] ?? $similar['area_sqft'], 1) ?> м²</span>
+                                    <?php if ($similar['floor_number']): ?>
+                                    <span><i class="fas fa-building"></i> <?= $similar['floor_number'] ?>/<?= $similar['total_floors'] ?: '?' ?></span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </article>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="similar-slider__dots" role="tablist" aria-label="Похожие объекты"></div>
                 </div>
             </section>
             <?php endif; ?>
@@ -879,6 +882,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
     <script src="js/pwa.js" defer></script>
+    <script src="js/similar-carousel.js" defer></script>
     <script>
         const galleryImages = <?= json_encode(array_column($images, 'image_url')) ?>;
         let currentIndex = 0;
