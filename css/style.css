@@ -565,6 +565,30 @@ a:hover {
     gap: var(--space-8);
 }
 
+/* В peek-карусели базовый grid-расклад не нужен — там flex-дорожка со скроллом */
+.properties-grid.similar-carousel__track {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-6);
+    overflow-x: auto;
+    overflow-y: visible;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: var(--space-2) 0;
+    cursor: grab;
+}
+
+.properties-grid.similar-carousel__track::-webkit-scrollbar {
+    display: none;
+}
+
+.properties-grid.similar-carousel__track:active {
+    cursor: grabbing;
+}
+
 .property-card {
     background-color: var(--color-white);
     border-radius: var(--radius-md);
@@ -2246,6 +2270,84 @@ a:hover {
     margin-bottom: var(--space-8);
 }
 
+/* Similar Properties — простой слайдер: 3 карточки в ряд, точки-линии снизу */
+.similar-slider {
+    /* содержит сетку карточек и блок точек-индикаторов */
+}
+
+.similar-slider__track {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-6);
+    transition: opacity var(--transition-base);
+}
+
+.similar-slider__slide {
+    min-width: 0;
+    transition: opacity var(--transition-base), transform var(--transition-base);
+    cursor: pointer;
+}
+
+.similar-slider__slide.is-faded {
+    opacity: 0.55;
+    transform: scale(0.98);
+}
+
+.similar-slider__slide.is-faded:hover {
+    opacity: 0.75;
+}
+
+/* Линии-точки (минималистичные индикаторы) */
+.similar-slider__dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+}
+
+.similar-slider__dot {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 36px;
+    height: 3px;
+    padding: 0;
+    border: 0;
+    border-radius: 2px;
+    background-color: var(--color-border);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), width var(--transition-fast);
+}
+
+.similar-slider__dot:hover {
+    background-color: var(--color-text-light);
+}
+
+.similar-slider__dot.is-active {
+    background-color: var(--color-accent);
+    width: 56px;
+}
+
+.similar-slider__dot:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 1024px) {
+    .similar-slider__track {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: var(--space-4);
+    }
+}
+
+@media (max-width: 640px) {
+    .similar-slider__track {
+        grid-template-columns: 1fr;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+}
+
 .reviews-section {
     padding: var(--space-12) 0;
 }
@@ -2703,8 +2805,10 @@ a:hover {
 }
 
 .dashboard .stats-grid {
+    display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-4);
+    margin-bottom: var(--space-8);
 }
 
 .dashboard .stat-card {
