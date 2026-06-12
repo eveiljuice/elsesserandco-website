@@ -6,6 +6,39 @@
 declare(strict_types=1);
 
 /**
+ * Превращает пользовательский запрос в boolean-строку для MATCH AGAINST.
+ *  - слова длиной < 3 отбрасываем (ft_min_token_len всё равно их не возьмёт)
+ *  - каждому оставшемуся слову добавляем префиксный wildcard '*' на конце,
+ *    чтобы "малыш" находило "малышева", "малышева 10" и т.д.
+ *  - минус-слова (начинающиеся с "-") сохраняем как есть для исключений
+ *  - фразы в кавычках сохраняем без wildcard
+ */
+function catalogBuildBooleanQuery(string $search): string
+{
+    $tokens = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+    $out = [];
+    foreach ($tokens as $tok) {
+        $tok = trim($tok);
+        if ($tok === '') continue;
+        $isNegative = $tok[0] === '-';
+        $word = $isNegative ? substr($tok, 1) : $tok;
+        // фразу в кавычках оставляем как есть
+        if (strlen($word) >= 2 && $word[0] === '"' && substr($word, -1) === '"') {
+            $out[] = ($isNegative ? '-' : '') . $word;
+            continue;
+        }
+        // очень короткие слова (<3) FULLTEXT всё равно игнорирует — пропускаем
+        if (mb_strlen($word) < 3) continue;
+        // экранируем wildcard-спецсимволы внутри слова, оставляя только хвостовой '*'
+        $wordSafe = preg_replace('/[+\-><()~*"@]+/u', ' ', $word);
+        $wordSafe = trim($wordSafe);
+        if ($wordSafe === '') continue;
+        $out[] = ($isNegative ? '-' : '+') . $wordSafe . '*';
+    }
+    return $out ? implode(' ', $out) : $search;
+}
+
+/**
  * @return array{where: string[], params: array, category: string, sortBy: string, page: int, perPage: int, offset: int}
  */
 function catalogParseFilters(array $get): array
@@ -74,13 +107,33 @@ function catalogParseFilters(array $get): array
     }
 
     $search = trim((string)($get['search'] ?? ''));
+    $useFulltext = false;
     if ($search !== '') {
-        $where[] = '(p.title_ru LIKE ? OR p.street LIKE ? OR p.location LIKE ? OR p.building_name LIKE ?)';
-        $term = '%' . $search . '%';
-        array_push($params, $term, $term, $term, $term);
+        // FULLTEXT работает для слов длиной от ft_min_token_len (по умолчанию 3).
+        // Для очень коротких запросов (1-2 символа) делаем LIKE-фоллбек,
+        // иначе MATCH AGAINST вернёт 0 строк.
+        $tokens = preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $hasLongToken = false;
+        foreach ($tokens as $t) {
+            if (mb_strlen($t) >= 3) { $hasLongToken = true; break; }
+        }
+        $useFulltext = $hasLongToken && mb_strlen($search) >= 3;
+
+        if ($useFulltext) {
+            $boolQuery = catalogBuildBooleanQuery($search);
+            $where[] = "MATCH(p.title_ru, p.street, p.location, p.building_name, p.description_ru, p.title, p.description)
+                        AGAINST(? IN BOOLEAN MODE)";
+            $params[] = $boolQuery;
+        } else {
+            $where[] = '(p.title_ru LIKE ? OR p.street LIKE ? OR p.location LIKE ? OR p.building_name LIKE ?)';
+            $term = '%' . $search . '%';
+            array_push($params, $term, $term, $term, $term);
+        }
     }
 
     $sortBy = $get['sort'] ?? 'newest';
+    // Если был поиск и сортировка «сначала новые» — добавим релевантность первым приоритетом
+    $orderByRelevance = $useFulltext && $sortBy === 'newest';
     $orderSql = match ($sortBy) {
         'price_asc'  => 'p.price ASC',
         'price_desc' => 'p.price DESC',
@@ -88,6 +141,10 @@ function catalogParseFilters(array $get): array
         'area_desc'  => 'p.area_total DESC',
         default      => 'p.created_at DESC',
     };
+    if ($orderByRelevance) {
+        $orderSql = "MATCH(p.title_ru, p.street, p.location, p.building_name, p.description_ru, p.title, p.description)
+                     AGAINST(? IN BOOLEAN MODE) DESC, " . $orderSql;
+    }
 
     return [
         'category' => $category,
@@ -105,17 +162,23 @@ function catalogParseFilters(array $get): array
 function catalogFetchProperties(PDO $pdo, array $filters, ?int $userId = null): array
 {
     $whereSql = implode(' AND ', $filters['where']);
-    $params = $filters['params'];
+    $whereParams = $filters['params'];
+    // Если в $filters['orderSql'] есть второй плейсхолдер ? для релевантности —
+    // его параметр должен идти сразу после WHERE-параметров (и после fav-параметра, если он есть).
+    $needsRelevanceParam = str_contains($filters['orderSql'], 'MATCH(');
 
-    $countStmt = $pdo->prepare("SELECT COUNT(*) FROM properties p WHERE {$whereSql}");
-    $countStmt->execute($params);
+    $countSql = "SELECT COUNT(*) FROM properties p WHERE {$whereSql}";
+    $countStmt = $pdo->prepare($countSql);
+    $countStmt->execute($whereParams);
     $total = (int)$countStmt->fetchColumn();
 
     $favJoin = '';
     $favSelect = '0 AS is_favorite';
+    $favParam = null;
     if ($userId) {
         $favJoin = 'LEFT JOIN favorites fav ON fav.property_id = p.id AND fav.user_id = ?';
         $favSelect = 'IF(fav.id IS NOT NULL, 1, 0) AS is_favorite';
+        $favParam = $userId;
     }
 
     $sql = "
@@ -130,7 +193,19 @@ function catalogFetchProperties(PDO $pdo, array $filters, ?int $userId = null): 
         LIMIT ? OFFSET ?
     ";
 
-    $execParams = $userId ? array_merge([$userId], $params) : $params;
+    // Порядок плейсхолдеров в $sql:
+    // 1) fav.user_id (если залогинен)
+    // 2) WHERE-параметры ($whereParams)
+    // 3) Параметр релевантности для ORDER BY (тот же boolQuery, что в WHERE)
+    // 4) LIMIT
+    // 5) OFFSET
+    $execParams = [];
+    if ($favParam !== null) $execParams[] = $favParam;
+    foreach ($whereParams as $p) $execParams[] = $p;
+    if ($needsRelevanceParam) {
+        // boolQuery — последний WHERE-параметр (добавляется при useFulltext)
+        $execParams[] = end($whereParams);
+    }
     $execParams[] = $filters['perPage'];
     $execParams[] = $filters['offset'];
 
