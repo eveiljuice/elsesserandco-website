@@ -39,13 +39,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($errors)) {
             try {
                 $pdo = getDBConnection();
-                
-                require_once __DIR__ . '/totp_helper.php';
 
                 $stmt = $pdo->prepare("
                     SELECT id, email, password_hash, first_name, last_name, role, is_active,
-                           failed_login_attempts, locked_until, totp_secret, totp_enabled_at
-                    FROM users 
+                           failed_login_attempts, locked_until
+                    FROM users
                     WHERE email = ?
                 ");
                 $stmt->execute([$email]);
@@ -60,21 +58,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     } else {
                         $pdo->prepare('UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?')
                             ->execute([$user['id']]);
-
-                        if (userRequiresTotp($user)) {
-                            $_SESSION['pending_2fa_user_id'] = $user['id'];
-                            $redirect = $_GET['redirect'] ?? $_POST['redirect'] ?? null;
-                            if ($redirect && (!str_starts_with($redirect, '/') || str_contains($redirect, '//'))) {
-                                $redirect = null;
-                            }
-                            $_SESSION['pending_2fa_redirect'] = $redirect ?: match ($user['role']) {
-                                'admin' => '/admin/index.php',
-                                'agent' => '/agent/dashboard.php',
-                                default => '/dashboard.php',
-                            };
-                            header('Location: /verify-2fa.php');
-                            exit;
-                        }
 
                         session_regenerate_id(true);
                         $_SESSION['user_id'] = $user['id'];
