@@ -183,10 +183,15 @@ $welcomeMessage = isset($_GET['welcome']);
             </div>
             <?php endif; ?>
 
-            <div class="dashboard-pwa card" style="margin-bottom:1.5rem;padding:1rem;">
-                <h3 style="margin:0 0 .5rem;">Приложение и уведомления</h3>
-                <button type="button" class="btn btn--secondary" id="pwaInstallBtn" hidden>Установить приложение</button>
-                <button type="button" class="btn btn--primary" id="pwaPushBtn">Включить push-уведомления</button>
+            <div class="dashboard-pwa card">
+                <div class="dashboard-pwa__content">
+                    <h3>Приложение и уведомления</h3>
+                    <p>Установите приложение и включите push, чтобы не пропустить важные события.</p>
+                </div>
+                <div class="dashboard-pwa__actions">
+                    <button type="button" class="btn btn--secondary" id="pwaInstallBtn" hidden>Установить приложение</button>
+                    <button type="button" class="btn btn--primary" id="pwaPushBtn">Включить push-уведомления</button>
+                </div>
             </div>
 
             <!-- Welcome Section -->
@@ -199,9 +204,6 @@ $welcomeMessage = isset($_GET['welcome']);
                     <a href="properties.php" class="btn btn--primary">
                         <i class="fas fa-search"></i> Найти недвижимость
                     </a>
-                    <?php if ($isAgentUser): ?>
-                    <a href="settings-2fa.php" class="btn btn--secondary">2FA</a>
-                    <?php endif; ?>
                 </div>
                 </div>
 
