@@ -70,5 +70,11 @@ function consumeEmailVerification(string $token): ?int
             email_verification_expires_at = NULL
         WHERE id = ?
     ")->execute([$row['id']]);
+
+    // Если это текущий залогиненный пользователь — синхронизируем сессию.
+    if (!empty($_SESSION['user_id']) && (int)$_SESSION['user_id'] === (int)$row['id']) {
+        $_SESSION['user_email_verified'] = true;
+    }
+
     return (int)$row['id'];
 }

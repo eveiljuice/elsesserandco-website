@@ -82,7 +82,7 @@
   - При успешном сбросе обнуляем `failed_login_attempts`
 - **Требует:** SMTP в `.env` (`MAIL_TRANSPORT=smtp` + хост/пароль) или `MAIL_TRANSPORT=log` для dev.
 
-### 2.4 OAuth: VK / Яндекс / Google 🟡 *(v2.1)*
+### 2.4 OAuth: VK / Яндекс / Google ✅ *(v2.2)*
 - **URLs:**
   - Старт: `/oauth/{vk,yandex,google}/start.php`
   - Callback: `/oauth/{vk,yandex,google}/callback.php`
@@ -94,25 +94,23 @@
 - **State CSRF:** `OAuthHelper::generateState()` + `consumeState()` хранят state в сессии 10 мин.
 - **Таблицы:** `users.oauth_provider`, `users.oauth_id` (uniq index)
 - **Требует в `.env`:** `VK_CLIENT_ID/SECRET`, `YANDEX_CLIENT_ID/SECRET`, `GOOGLE_CLIENT_ID/SECRET` + redirect_uri
-- **Кнопки** автоматически скрываются на login/register, если соответствующий `CLIENT_ID` пуст.
+- **Кнопки** в `login.php` и `register.php` всегда видны. Если `CLIENT_ID` пуст — кнопка отображается как `disabled` с подсказкой «провайдер не настроен администратором».
 
-### 2.5 Telegram Login Widget 🟡 *(v2.1)*
-- **URL:** виджет встроен в `login.php` и `register.php` (рендерится клиентом)
-- **Callback:** `/oauth/telegram/callback.php`
-- **Файл:** `oauth/telegram/callback.php`
-- **Защита подписи:** HMAC-SHA256 на `data_check_string`, secret = `sha256(bot_token)`
-- **auth_date:** проверяется на ≤24 ч
-- **Таблицы:** `users.telegram_id` (BIGINT, uniq), `users.telegram_username`
-- **Требует в `.env`:** `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME` + `/setdomain` у @BotFather
+### 2.5 Telegram Login Widget ❌ *(удалено в v2.2)*
+- Виджет, колбэк и БД-колонки были выпилены в v2.2 (миграция 023_cleanup.sql).
+- Если потребуется вернуть — потребуется восстановить `oauth/telegram/callback.php`, добавить колонки `telegram_id` / `telegram_username` и расширить ENUM `users.oauth_provider`.
+- Поля `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` в `.env.example` помечены как legacy, чтобы старые конфиги не ломали парсинг.
 
-### 2.6 Подтверждение email ✅ *(v2.1)*
+### 2.6 Подтверждение email ✅ *(v2.1, расширено в v2.2)*
 - **URL:** `/verify-email.php?token={token}`
-- **Файлы:** `verify-email.php`, `includes/auth/email_verification.php`
-- **API:** `POST /php/auth/resend_verification.php` (повторная отправка для текущего юзера)
+- **Файлы:** `verify-email.php`, `includes/auth/email_verification.php`, `js/dashboard.js`
+- **API:** `POST /php/auth/resend_verification.php` (повторная отправка для текущего юзера, с rate-limit 60 сек)
 - **Поля БД:** `users.email_verified_at`, `users.email_verification_token`, `users.email_verification_expires_at`
 - **Токен:** sha256-хеш, действует 24 часа
 - **Автоотправка:** при `register.php` (новый юзер) и через OAuth (`email_verified_at = NOW()` сразу).
-- **TODO:** показать в `dashboard.php` баннер «подтвердите email» с кнопкой повторной отправки.
+- **Сессия:** `$_SESSION['user_email_verified']` — кешируется при логине и обновляется в `consumeEmailVerification()` после успешного verify.
+- **UI (v2.2):** баннер в `dashboard.php` (если `email_verified_at IS NULL`) с кнопкой «Отправить снова» и ссылкой на почтовый домен.
+- **Мягкий гейт (v2.2):** неверифицированные залогиненные пользователи получают `403 email_not_verified` при попытке отправить сообщение агенту в `php/chat/send_message.php`. Заявки (`inquiries/submit.php`) гостевые — гейт не ставим, чтобы не терять лиды.
 
 ### 2.7 CSRF + Session ✅
 - **Файл:** `includes/auth/check_auth.php`
@@ -237,23 +235,7 @@
 
 ---
 
-## 7. Аналитика цен ✅ *(v2.1)*
-
-- **URL:** `/analytics.php?category={sale|rent}`
-- **Файл:** `analytics.php` (логика + Chart.js)
-- **Что считается:**
-  - Средняя цена за м² по районам (с min/max/диапазон)
-  - Тренд за 12 месяцев (line chart)
-  - Распределение по комнатам (bar chart с двумя осями)
-- **Источник:** агрегации по `properties` (без отдельной аналитической таблицы)
-- **TODO:**
-  - Кеш на 1 час (сейчас считаем при каждом запросе)
-  - Сравнение нескольких районов
-  - Прогноз цены через scikit-learn / простой OLS (за рамками PHP)
-
----
-
-## 8. SEO
+## 7. SEO
 
 ### 8.1 sitemap.xml ✅ *(v2.1)*
 - **URL:** `/sitemap.xml` (через `.htaccess` редиректится на `sitemap.php`)
@@ -264,7 +246,7 @@
 ### 8.2 robots.txt ✅
 - **Файл:** `robots.txt`
 - Блокирует /admin/, /agent/, /includes/, /php/, /oauth/, dashboard.php, chat.php и т.д.
-- Разрешает индексировать каталог, отдельные объекты, новостройки, аналитику.
+- Разрешает индексировать каталог, отдельные объекты, новостройки.
 - `Crawl-delay: 1` для YandexBot.
 
 ### 8.3 JSON-LD Schema.org ✅ *(v2.1)*
@@ -274,7 +256,7 @@
 - **Open Graph:** дублирует key поля для шаринга в соцсети.
 
 ### 8.4 Canonical URLs ✅
-- На `property.php`, `analytics.php` — `<link rel="canonical">`
+- На `property.php` — `<link rel="canonical">`
 - **TODO:** на `properties.php` (с учётом параметров фильтра).
 
 ### 8.5 ЧПУ URLs ✅
@@ -576,7 +558,7 @@ gunzip < /var/backups/elsesserandco/db-YYYY-MM-DD-HHMMSS.sql.gz | mysql -u root 
 .
 ├── /admin/                Админ-панель (requireAdmin)
 ├── /agent/                Кабинет агента (requireAgent)
-├── /oauth/                v2.1: VK / Yandex / Google / Telegram (start.php + callback.php)
+├── /oauth/                v2.1: VK / Yandex / Google (start.php + callback.php). Telegram удалён в v2.2.
 ├── /includes/
 │   ├── auth/              login, register, check_auth, password_reset, email_verification, oauth_helper
 │   ├── config/            database.php, Config.php
@@ -614,7 +596,6 @@ gunzip < /var/backups/elsesserandco/db-YYYY-MM-DD-HHMMSS.sql.gz | mysql -u root 
 ├── property.php           Карточка объекта (1400+ строк — кандидат на сплит)
 ├── new-buildings.php      Каталог ЖК
 ├── new-building.php       Карточка ЖК
-├── analytics.php          v2.1: аналитика цен
 ├── login.php / register.php / logout.php
 ├── forgot-password.php / reset-password.php / verify-email.php  (v2.1)
 ├── register-developer.php / register-agency.php

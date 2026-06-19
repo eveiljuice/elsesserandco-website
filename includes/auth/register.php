@@ -120,6 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $_SESSION['user_name'] = $first_name;
                     $_SESSION['user_email'] = $email;
                     $_SESSION['user_role'] = 'user';
+                    $_SESSION['user_email_verified'] = false; // будет подтверждено через письмо
                     $_SESSION['logged_in'] = true;
 
                     header("Location: /dashboard.php?welcome=1&verify=1");

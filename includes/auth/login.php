@@ -64,6 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['user_name'] = $user['first_name'];
                         $_SESSION['user_email'] = $user['email'];
                         $_SESSION['user_role'] = $user['role'];
+                        $_SESSION['user_email_verified'] = !empty($user['email_verified_at']);
                         $_SESSION['logged_in'] = true;
                         $_SESSION['login_time'] = time();
                         $_SESSION['last_activity'] = time();
