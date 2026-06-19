@@ -217,8 +217,8 @@ $pdConsentGiven = !empty($_SESSION['pd_consent']);
                                 <label class="checkbox-label">
                                     <input type="checkbox" name="agree" class="checkbox" required <?= $pdConsentGiven ? 'checked' : '' ?>>
                                     <span class="checkbox-custom"></span>
-                                    Я согласен с <a href="/privacy.php" target="_blank">условиями использования</a> и
-                                    <a href="/privacy.php" target="_blank">политикой конфиденциальности</a>
+                                    Я согласен с <a href="/privacy.php?return=/register.php" target="_blank">условиями использования</a> и
+                                    <a href="/privacy.php?return=/register.php" target="_blank">политикой конфиденциальности</a>
                                 </label>
                             </div>
                             

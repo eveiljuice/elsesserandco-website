@@ -4,6 +4,7 @@
  * Страница регистрации агентства недвижимости
  */
 
+require_once __DIR__ . '/includes/config/Config.php';
 $data = require_once __DIR__ . '/includes/auth/register_agency.php';
 $errors = $data['errors'];
 $success = $data['success'];
@@ -11,6 +12,13 @@ $formData = $data['formData'];
 $legalForms = $data['legalForms'];
 $specializationOptions = $data['specializationOptions'];
 $csrf_token = $data['csrf_token'];
+
+// Если пользователь подтвердил согласие на ПДн на отдельной странице,
+// автопроставляем чекбокс agree в форме регистрации.
+if (!empty($_GET['pd_consent']) && $_GET['pd_consent'] === '1' && empty($_SESSION['pd_consent'])) {
+    $_SESSION['pd_consent'] = true;
+}
+$pdConsentGiven = !empty($_SESSION['pd_consent']);
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -511,11 +519,11 @@ $csrf_token = $data['csrf_token'];
                             <!-- Согласие -->
                             <div class="form-group">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" name="agree" class="checkbox" required>
+                                    <input type="checkbox" name="agree" class="checkbox" required <?= $pdConsentGiven ? 'checked' : '' ?>>
                                     <span class="checkbox-custom"></span>
-                                    Я подтверждаю достоверность предоставленных данных и согласен с 
-                                    <a href="#" target="_blank">условиями партнёрства</a> и 
-                                    <a href="#" target="_blank">политикой конфиденциальности</a>
+                                    Я подтверждаю достоверность предоставленных данных и согласен с
+                                    <a href="/privacy.php?return=/register-agency.php" target="_blank">условиями партнёрства</a> и
+                                    <a href="/privacy.php?return=/register-agency.php" target="_blank">политикой конфиденциальности</a>
                                 </label>
                             </div>
                             
