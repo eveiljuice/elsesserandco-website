@@ -19,9 +19,8 @@ $urls = [
     ['loc' => $base . '/properties.php?category=sale',  'priority' => '0.9', 'changefreq' => 'daily'],
     ['loc' => $base . '/properties.php?category=rent',  'priority' => '0.9', 'changefreq' => 'daily'],
     ['loc' => $base . '/new-buildings.php',             'priority' => '0.9', 'changefreq' => 'daily'],
-    ['loc' => $base . '/about.html',                    'priority' => '0.5', 'changefreq' => 'monthly'],
-    ['loc' => $base . '/contact.html',                  'priority' => '0.5', 'changefreq' => 'monthly'],
-    ['loc' => $base . '/analytics.php',                 'priority' => '0.6', 'changefreq' => 'weekly'],
+    ['loc' => $base . '/about.php',                    'priority' => '0.5', 'changefreq' => 'monthly'],
+    ['loc' => $base . '/contact.php',                  'priority' => '0.5', 'changefreq' => 'monthly'],
 ];
 
 // Properties

@@ -113,7 +113,7 @@ $csrf = generateCSRFToken();
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <a href="login.php" class="btn btn--secondary">Войти</a>
                 </nav>

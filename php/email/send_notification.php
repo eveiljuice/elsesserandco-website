@@ -78,7 +78,7 @@ function getEmailTemplate(string $title, string $content): string {
                                 © 2024 ООО "Эльсессер и Ко". Все права защищены.
                             </p>
                             <p style="margin: 0; color: #9ca3af; font-size: 11px; text-align: center;">
-                                ул. Малышева, 51, Екатеринбург | +7 (343) 250-50-50
+                                г. Миасс, проспект Автозаводцев, 43 | +7 (3513) 50-50-50
                             </p>
                         </td>
                     </tr>

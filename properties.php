@@ -189,7 +189,7 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
                         <li><a href="properties.php?category=sale" class="nav__link <?= $category === 'sale' ? 'nav__link--active' : '' ?>">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link <?= $category === 'rent' ? 'nav__link--active' : '' ?>">Аренда</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <?php if ($user['logged_in']): ?>

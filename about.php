@@ -37,11 +37,11 @@
                     <ul class="nav__list">
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
-                        <li><a href="contact.html" class="nav__link">Продать</a></li>
+                        <li><a href="contact.php" class="nav__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link nav__link--active">О нас</a></li>
+                        <li><a href="about.php" class="nav__link nav__link--active">О нас</a></li>
                     </ul>
-                    <a href="contact.html" class="btn btn--primary">Оценка недвижимости</a>
+                    <a href="contact.php" class="btn btn--primary">Оценка недвижимости</a>
                 </nav>
                 
                 <button class="hamburger" id="hamburger" aria-label="Открыть меню">
@@ -70,16 +70,16 @@
                     <a href="properties.php?category=rent" class="sidebar__nav-link">Аренда недвижимости</a>
                 </li>
                 <li class="sidebar__nav-item">
-                    <a href="contact.html" class="sidebar__nav-link">Продать недвижимость</a>
+                    <a href="contact.php" class="sidebar__nav-link">Продать недвижимость</a>
                 </li>
                 <li class="sidebar__nav-item">
                     <a href="new-buildings.php" class="sidebar__nav-link">Новостройки</a>
                 </li>
                 <li class="sidebar__nav-item">
-                    <a href="about.html" class="sidebar__nav-link">О компании</a>
+                    <a href="about.php" class="sidebar__nav-link">О компании</a>
                 </li>
                 <li class="sidebar__nav-item">
-                    <a href="contact.html" class="sidebar__nav-link">Контакты</a>
+                    <a href="contact.php" class="sidebar__nav-link">Контакты</a>
                 </li>
             </ul>
         </nav>
@@ -119,7 +119,7 @@
                         Но что действительно отличает нас — это наша приверженность делать всё правильно, 
                         с честностью, энергией и искренним желанием помочь.
                     </p>
-                    <a href="contact.html" class="btn btn--secondary">Связаться с нами</a>
+                    <a href="contact.php" class="btn btn--secondary">Связаться с нами</a>
                 </div>
                 <div class="about-section__image">
                     <img src="images/team/team.webp" alt="Офис Elsesser & Co.">
@@ -241,102 +241,17 @@
             <p class="cta-section__text">
                 Свяжитесь с нами сегодня, чтобы обсудить ваши цели в сфере недвижимости.
             </p>
-            <a href="contact.html" class="btn btn--cta btn--lg">Связаться с нами</a>
+            <a href="contact.php" class="btn btn--cta btn--lg">Связаться с нами</a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer__grid">
-                <div class="footer__brand">
-                    <div class="footer__logo">Elsesser & Co.</div>
-                    <a href="tel:+73432505050" class="footer__phone">+7 (343) 250-50-50</a>
-                    <p class="footer__address">
-                        ООО "Эльсессер и Ко"<br>
-                        БЦ "Высоцкий", 20-й этаж,<br>
-                        ул. Малышева, 51, Екатеринбург
-                    </p>
-                    <a href="#" class="footer__directions">
-                        <i class="fas fa-map-marker-alt"></i>
-                        Проложить маршрут
-                    </a>
-                </div>
-                
-                <div class="footer__column">
-                    <h4 class="footer__title">Недвижимость</h4>
-                    <ul class="footer__links">
-                        <li><a href="properties.php?category=sale" class="footer__link">Купить</a></li>
-                        <li><a href="properties.php?category=rent" class="footer__link">Аренда</a></li>
-                        <li><a href="contact.html" class="footer__link">Продать</a></li>
-                        <li><a href="new-buildings.php" class="footer__link">Новостройки</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__column">
-                    <h4 class="footer__title">Ресурсы</h4>
-                    <ul class="footer__links">
-                        <li><a href="#" class="footer__link">Гид по районам</a></li>
-                        <li><a href="#" class="footer__link">Новости и аналитика</a></li>
-                        <li><a href="#" class="footer__link">Отчёты рынка</a></li>
-                        <li><a href="#" class="footer__link">Видео о недвижимости</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__column">
-                    <h4 class="footer__title">О нас</h4>
-                    <ul class="footer__links">
-                        <li><a href="about.html" class="footer__link">О компании</a></li>
-                        <li><a href="about.html#team" class="footer__link">Наша команда</a></li>
-                        <li><a href="#" class="footer__link">Карьера</a></li>
-                        <li><a href="contact.html" class="footer__link">Контакты</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__column">
-                    <h4 class="footer__title">Связаться</h4>
-                    <ul class="footer__links">
-                        <li><a href="#" class="footer__link">Instagram</a></li>
-                        <li><a href="#" class="footer__link">Facebook</a></li>
-                        <li><a href="#" class="footer__link">YouTube</a></li>
-                        <li><a href="#" class="footer__link">LinkedIn</a></li>
-                    </ul>
-                    <div class="footer__social">
-                        <a href="#" class="footer__social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-                        <a href="#" class="footer__social-link" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="footer__social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
-                        <a href="#" class="footer__social-link" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Awards Banner -->
-            <div class="footer__awards">
-                <img src="images/Footer-Banners-1.webp" alt="Награды и сертификаты Elsesser & Co." class="footer__awards-banner">
-            </div>
-
-            <div class="footer__bottom">
-                <p class="footer__copyright">
-                    © 2024 Elsesser & Co. Real Estate LLC. Все права защищены.
-                </p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 
     <!-- Scripts -->
     <script src="js/navigation.js"></script>
     <script src="js/main.js"></script>
-    <script>
-    // Подгружаем cookie-баннер через fetch (HTML-страница не парсится PHP).
-    fetch('/includes/cookie-banner-fragment.html').then(r => r.ok ? r.text() : '').then(html => {
-        if (html) {
-            document.body.insertAdjacentHTML('beforeend', html);
-            var s = document.createElement('script');
-            s.src = 'js/cookie-banner.js';
-            document.body.appendChild(s);
-        }
-    }).catch(() => {});
-    </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>
 

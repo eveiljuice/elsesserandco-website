@@ -21,7 +21,7 @@
                 </a>
             </li>
             <li class="sidebar__nav-item">
-                <a href="contact.html" class="sidebar__nav-link">
+                <a href="contact.php" class="sidebar__nav-link">
                     Продать недвижимость
                     <i class="fas fa-chevron-right"></i>
                 </a>
@@ -33,10 +33,10 @@
                 </a>
             </li>
             <li class="sidebar__nav-item">
-                <a href="about.html" class="sidebar__nav-link">О компании</a>
+                <a href="about.php" class="sidebar__nav-link">О компании</a>
             </li>
             <li class="sidebar__nav-item">
-                <a href="contact.html" class="sidebar__nav-link">Контакты</a>
+                <a href="contact.php" class="sidebar__nav-link">Контакты</a>
             </li>
             <?php if ($user['logged_in']): ?>
             <li class="sidebar__nav-item">

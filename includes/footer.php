@@ -4,7 +4,7 @@
         <div class="footer__grid">
             <div class="footer__brand">
                 <div class="footer__logo">Elsesser & Co.</div>
-                <a href="tel:+73432505050" class="footer__phone">+7 (343) 250-50-50</a>
+                <a href="tel:+73513505050" class="footer__phone">+7 (3513) 50-50-50</a>
                 <p class="footer__address">
                     ООО "Эльсессер и Ко"<br>
                     г. Миасс, проспект Автозаводцев, 43
@@ -20,7 +20,7 @@
                 <ul class="footer__links">
                     <li><a href="/properties.php?category=sale" class="footer__link">Купить</a></li>
                     <li><a href="/properties.php?category=rent" class="footer__link">Аренда</a></li>
-                    <li><a href="/contact.html" class="footer__link">Продать</a></li>
+                    <li><a href="/contact.php" class="footer__link">Продать</a></li>
                     <li><a href="/new-buildings.php" class="footer__link">Новостройки</a></li>
                 </ul>
             </div>
@@ -28,9 +28,9 @@
             <div class="footer__column">
                 <h4 class="footer__title">О нас</h4>
                 <ul class="footer__links">
-                    <li><a href="/about.html" class="footer__link">О компании</a></li>
-                    <li><a href="/about.html#team" class="footer__link">Наша команда</a></li>
-                    <li><a href="/contact.html" class="footer__link">Контакты</a></li>
+                    <li><a href="/about.php" class="footer__link">О компании</a></li>
+                    <li><a href="/about.php#team" class="footer__link">Наша команда</a></li>
+                    <li><a href="/contact.php" class="footer__link">Контакты</a></li>
                     <li><a href="/privacy.php" class="footer__link">Политика конфиденциальности</a></li>
                     <li><a href="#" class="footer__link" onclick="if(window.EcoCookieBanner){window.EcoCookieBanner.reset();return false;}">Настройки cookie</a></li>
                 </ul>
@@ -68,7 +68,7 @@
 
         <div class="footer__bottom">
             <p class="footer__copyright">
-                © <?= date('Y') ?> Elsesser & Co. Real Estate LLC. Все права защищены.
+                © <?= date('Y') ?> ООО «Эльсессер и Ко». Все права защищены.
             </p>
             <div class="footer__social">
                 <a href="https://t.me/elsesserco" class="footer__social-link" aria-label="Telegram" target="_blank"><i class="fab fa-telegram"></i></a>

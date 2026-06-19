@@ -76,8 +76,8 @@ if (isset($_GET['timeout'])) {
                     <ul class="nav__list">
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
-                        <li><a href="contact.html" class="nav__link">Продать</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="contact.php" class="nav__link">Продать</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <a href="register.php" class="btn btn--secondary">Регистрация</a>
                 </nav>

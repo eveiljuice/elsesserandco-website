@@ -119,7 +119,7 @@ if ($building['is_completed']) {
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="new-buildings.php" class="nav__link nav__link--active">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <?php if ($user['logged_in']): ?>
                     <a href="favorites.php" class="nav__link"><i class="fas fa-heart"></i></a>
@@ -632,14 +632,14 @@ if ($building['is_completed']) {
                                class="btn btn--primary btn--full">
                                 <i class="fas fa-comments"></i> Чат с агентом
                             </a>
-                            <a href="contact.html?building=<?= $building['id'] ?>" 
+                            <a href="contact.php?building=<?= $building['id'] ?>" 
                                class="btn btn--secondary btn--full">
                                 <i class="fas fa-phone"></i> Позвонить
                             </a>
                         </div>
                         <?php else: ?>
                         <div class="agent-card__actions">
-                            <a href="contact.html?building=<?= $building['id'] ?>" 
+                            <a href="contact.php?building=<?= $building['id'] ?>" 
                                class="btn btn--primary btn--full">
                                 <i class="fas fa-phone"></i> Связаться
                             </a>

@@ -138,7 +138,7 @@ $pageTitle = 'Новостройки Екатеринбурга';
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="new-buildings.php" class="nav__link nav__link--active">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <?php if ($user['logged_in']): ?>
                     <a href="favorites.php" class="nav__link"><i class="fas fa-heart"></i></a>
@@ -352,7 +352,7 @@ $pageTitle = 'Новостройки Екатеринбурга';
                             </span>
                             <?php endif; ?>
                         </div>
-                        <a href="contact.html?building=<?= $b['id'] ?>" class="property-card__chat-btn">
+                        <a href="contact.php?building=<?= $b['id'] ?>" class="property-card__chat-btn">
                             <i class="fas fa-phone"></i> Связаться
                         </a>
                     </div>

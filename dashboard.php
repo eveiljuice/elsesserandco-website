@@ -404,7 +404,7 @@ $welcomeMessage = isset($_GET['welcome']);
                                 </a>
                             </li>
                             <li>
-                                <a href="contact.html">
+                                <a href="contact.php">
                                     <i class="fas fa-tag"></i> Продать недвижимость
                                 </a>
                             </li>

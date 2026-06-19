@@ -119,9 +119,9 @@ $logoutMessage = isset($_GET['logout']);
                     <ul class="nav__list">
                         <li><a href="properties.php?category=sale" class="nav__link">Купить</a></li>
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
-                        <li><a href="contact.html" class="nav__link">Продать</a></li>
+                        <li><a href="contact.php" class="nav__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
-                        <li><a href="about.html" class="nav__link">О нас</a></li>
+                        <li><a href="about.php" class="nav__link">О нас</a></li>
                     </ul>
                     <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <?php if ($user['logged_in']): ?>
@@ -275,7 +275,7 @@ $logoutMessage = isset($_GET['logout']);
                         по всему Екатеринбургу — от квартир и домов до коммерческих помещений и новостроек.
                     </p>
                     <div class="mt-8">
-                        <a href="about.html" class="btn btn--secondary">Узнать больше</a>
+                        <a href="about.php" class="btn btn--secondary">Узнать больше</a>
                     </div>
                 </div>
             </div>
@@ -334,72 +334,12 @@ $logoutMessage = isset($_GET['logout']);
                 Наши эксперты помогут вам на каждом этапе — от поиска до сделки. 
                 Закажите бесплатную консультацию уже сегодня.
             </p>
-            <a href="contact.html" class="btn btn--cta btn--lg">Связаться с нами</a>
+            <a href="contact.php" class="btn btn--cta btn--lg">Связаться с нами</a>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer__grid">
-                <div class="footer__brand">
-                    <div class="footer__logo">Elsesser & Co.</div>
-                    <a href="tel:+73432505050" class="footer__phone">+7 (343) 250-50-50</a>
-                    <p class="footer__address">
-                        ООО "Эльсессер и Ко"<br>
-                        БЦ "Высоцкий", 20-й этаж,<br>
-                        ул. Малышева, 51, Екатеринбург
-                    </p>
-                    <a href="#" class="footer__directions">
-                        <i class="fas fa-map-marker-alt"></i>
-                        Проложить маршрут
-                    </a>
-                </div>
-                
-                <div class="footer__column">
-                    <h4 class="footer__title">Недвижимость</h4>
-                    <ul class="footer__links">
-                        <li><a href="properties.php?category=sale" class="footer__link">Купить</a></li>
-                        <li><a href="properties.php?category=rent" class="footer__link">Аренда</a></li>
-                        <li><a href="contact.html" class="footer__link">Продать</a></li>
-                        <li><a href="new-buildings.php" class="footer__link">Новостройки</a></li>
-                    </ul>
-                </div>
-                             
-                <div class="footer__column">
-                    <h4 class="footer__title">О нас</h4>
-                    <ul class="footer__links">
-                        <li><a href="about.html" class="footer__link">О компании</a></li>
-                        <li><a href="about.html#team" class="footer__link">Наша команда</a></li>
-                        <li><a href="contact.html" class="footer__link">Контакты</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer__column footer__column--newsletter">
-                    <h4 class="footer__title">Подписка на рассылку</h4>
-                    <p class="footer__newsletter-text">Получайте новые объекты и актуальные новости рынка</p>
-                    <form class="footer__newsletter-form" id="newsletterForm">
-                        <input type="email" name="email" placeholder="Ваш email" required class="footer__newsletter-input">
-                        <button type="submit" class="footer__newsletter-btn">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </form>
-                    <div id="newsletterMessage" class="footer__newsletter-message" style="display: none;"></div>
-                </div>
-            </div>
-
-            <!-- Awards Banner -->
-            <div class="footer__awards">
-                <img src="images/Footer-Banners-1.webp" alt="Награды и сертификаты Elsesser & Co." class="footer__awards-banner">
-            </div>
-
-            <div class="footer__bottom">
-                <p class="footer__copyright">
-                    © <?= date('Y') ?> Elsesser & Co. Real Estate LLC. Все права защищены.
-                </p>
-            </div>
-        </div>
-    </footer>
+    <?php include __DIR__ . '/includes/footer.php'; ?>
 
     <!-- Scripts -->
     <script src="js/navigation.js"></script>
@@ -411,40 +351,40 @@ $logoutMessage = isset($_GET['logout']);
         // Search type toggle
         document.querySelectorAll('.search-box__toggle-btn').forEach(btn => {
             btn.addEventListener('click', function() {
-                document.querySelectorAll('.search-box__toggle-btn').forEach(b => 
+                document.querySelectorAll('.search-box__toggle-btn').forEach(b =>
                     b.classList.remove('search-box__toggle-btn--active')
                 );
                 this.classList.add('search-box__toggle-btn--active');
                 document.getElementById('searchType').value = this.dataset.type;
             });
         });
-        
+
         // Newsletter subscription
         const newsletterForm = document.getElementById('newsletterForm');
         if (newsletterForm) {
             newsletterForm.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
+
                 const email = this.querySelector('input[name="email"]').value;
                 const messageEl = document.getElementById('newsletterMessage');
                 const submitBtn = this.querySelector('button[type="submit"]');
-                
+
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                
+
                 try {
                     const response = await fetch('/php/newsletter/subscribe.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'email=' + encodeURIComponent(email)
                     });
-                    
+
                     const data = await response.json();
-                    
+
                     messageEl.style.display = 'block';
                     messageEl.className = 'footer__newsletter-message ' + (data.success ? 'success' : 'error');
                     messageEl.textContent = data.message || data.error;
-                    
+
                     if (data.success) {
                         this.reset();
                     }
@@ -455,7 +395,7 @@ $logoutMessage = isset($_GET['logout']);
                 } finally {
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
-                    
+
                     setTimeout(() => {
                         messageEl.style.display = 'none';
                     }, 5000);
