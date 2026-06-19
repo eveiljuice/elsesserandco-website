@@ -7,8 +7,7 @@
                 <a href="tel:+73432505050" class="footer__phone">+7 (343) 250-50-50</a>
                 <p class="footer__address">
                     ООО "Эльсессер и Ко"<br>
-                    БЦ "Высоцкий", 20-й этаж,<br>
-                    ул. Малышева, 51, Екатеринбург
+                    г. Миасс, проспект Автозаводцев, 43
                 </p>
                 <a href="https://yandex.ru/maps/-/CHEuRXxx" target="_blank" class="footer__directions">
                     <i class="fas fa-map-marker-alt"></i>
