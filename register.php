@@ -235,8 +235,8 @@ $pdConsentGiven = !empty($_SESSION['pd_consent']);
                         <div class="auth-divider"><span>или зарегистрироваться через</span></div>
 
                         <div class="oauth-buttons">
-                            <?php foreach ($oauthProviders as $provider):
-                                $cls = 'oauth-btn--' . htmlspecialchars($provider);
+                            <?php foreach ($oauthProviders as $providerKey => $provider):
+                                $cls = 'oauth-btn--' . htmlspecialchars($providerKey);
                                 if (!$provider['enabled']) {
                                     $cls .= ' oauth-btn--disabled';
                                 }
