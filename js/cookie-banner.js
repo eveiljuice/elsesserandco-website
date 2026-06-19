@@ -1,16 +1,25 @@
 /**
- * Cookie Banner — Elsesser & Co.
+ * Cookie Banner + Floating Toggle — Elsesser & Co.
  * Категоризированное согласие на cookie (152-ФЗ).
+ *
+ * Поведение:
+ *  - При первом визите (нет записи в localStorage) показывается нижняя плашка.
+ *  - После согласия плашка скрывается, остаётся маленькая кнопка сбоку
+ *    (правый нижний угол) с иконкой cookie. По клику — снова открывает
+ *    баннер для повторного изменения настроек.
+ *  - Кнопка видна ВСЕГДА, в том числе гостям (незалогиненным).
  *
  * Использование:
  *   <div id="cookieBanner">…</div>            ← разметка
+ *   <button id="cookieToggle" hidden>…</button>  ← кнопка сбоку (опционально)
  *   <script src="js/cookie-banner.js"></script>
  *
  * API:
- *   window.EcoCookieBanner.show()    — принудительно открыть баннер
- *   window.EcoCookieBanner.hide()    — скрыть
+ *   window.EcoCookieBanner.show()    — открыть баннер
+ *   window.EcoCookieBanner.hide()    — скрыть баннер
  *   window.EcoCookieBanner.reset()   — очистить localStorage и открыть
  *   window.EcoCookieBanner.get()     — текущее согласие (или null)
+ *   window.EcoCookieBanner.openSettings()  — то же что reset()
  *
  * События:
  *   document.addEventListener('eco:cookie-consent', e => console.log(e.detail))
@@ -21,13 +30,6 @@
 
     var STORAGE_KEY = 'eco_cookie_consent';
     var TTL_DAYS = 180;
-    var DEFAULT_CONSENT = {
-        accepted: false,
-        necessary: true,
-        analytics: false,
-        marketing: false,
-        ts: 0
-    };
 
     /** @returns {object|null} */
     function readConsent() {
@@ -67,6 +69,18 @@
         banner.hidden = true;
     }
 
+    function showToggle() {
+        var btn = document.getElementById('cookieToggle');
+        if (!btn) return;
+        btn.hidden = false;
+    }
+
+    function hideToggle() {
+        var btn = document.getElementById('cookieToggle');
+        if (!btn) return;
+        btn.hidden = true;
+    }
+
     function showCategories() {
         var cats = document.getElementById('cookieCategories');
         var saveBtn = document.querySelector('[data-cookie-action="save-selection"]');
@@ -85,18 +99,15 @@
         };
     }
 
-    function init() {
-        var existing = readConsent();
-        if (!existing) {
+    function bindToggle() {
+        var btn = document.getElementById('cookieToggle');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
             showBanner();
-        } else {
-            // Уже есть согласие — баннер скрыт, но событие прошло при загрузке.
-            try {
-                document.dispatchEvent(new CustomEvent('eco:cookie-consent', { detail: existing }));
-            } catch (e) { /* noop */ }
-        }
+        });
+    }
 
-        // Навешиваем обработчики на кнопки
+    function bindActions() {
         document.querySelectorAll('[data-cookie-action]').forEach(function (btn) {
             btn.addEventListener('click', function (e) {
                 e.preventDefault();
@@ -109,6 +120,7 @@
                         marketing: true
                     });
                     hideBanner();
+                    showToggle();
                 } else if (action === 'necessary-only') {
                     writeConsent({
                         accepted: 'necessary',
@@ -117,6 +129,7 @@
                         marketing: false
                     });
                     hideBanner();
+                    showToggle();
                 } else if (action === 'settings') {
                     showCategories();
                 } else if (action === 'save-selection') {
@@ -128,17 +141,47 @@
                         marketing: sel.marketing
                     });
                     hideBanner();
+                    showToggle();
+                } else if (action === 'close') {
+                    hideBanner();
+                    showToggle();
                 }
             });
         });
     }
 
+    function init() {
+        var existing = readConsent();
+        if (!existing) {
+            // Первый визит — показываем плашку, кнопку прячем (плашка сама служит CTA).
+            showBanner();
+            hideToggle();
+        } else {
+            // Согласие уже есть — баннер скрыт, показываем плавающую кнопку.
+            hideBanner();
+            showToggle();
+            try {
+                document.dispatchEvent(new CustomEvent('eco:cookie-consent', { detail: existing }));
+            } catch (e) { /* noop */ }
+        }
+
+        bindToggle();
+        bindActions();
+    }
+
     window.EcoCookieBanner = {
         show: showBanner,
-        hide: hideBanner,
+        hide: function () { hideBanner(); showToggle(); },
         reset: function () {
             localStorage.removeItem(STORAGE_KEY);
+            hideToggle();
             showBanner();
+        },
+        openSettings: function () {
+            localStorage.removeItem(STORAGE_KEY);
+            hideToggle();
+            showBanner();
+            showCategories();
         },
         get: readConsent
     };

@@ -70,11 +70,6 @@
             <p class="footer__copyright">
                 © <?= date('Y') ?> ООО «Эльсессер и Ко». Все права защищены.
             </p>
-            <div class="footer__social">
-                <a href="https://t.me/elsesserco" class="footer__social-link" aria-label="Telegram" target="_blank"><i class="fab fa-telegram"></i></a>
-                <a href="https://vk.com/elsesserco" class="footer__social-link" aria-label="VK" target="_blank"><i class="fab fa-vk"></i></a>
-                <a href="https://wa.me/73432505050" class="footer__social-link" aria-label="WhatsApp" target="_blank"><i class="fab fa-whatsapp"></i></a>
-            </div>
         </div>
     </div>
 </footer>
