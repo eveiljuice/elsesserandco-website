@@ -122,6 +122,7 @@ $welcomeMessage = isset($_GET['welcome']);
                             <?php endif; ?>
                         </a></li>
                     </ul>
+                    <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <div class="user-menu">
                         <button class="user-menu__toggle" id="userMenuToggle">
                             <div class="user-menu__avatar">
@@ -475,12 +476,8 @@ $welcomeMessage = isset($_GET['welcome']);
             } catch (e) { alert('Ошибка отправки'); }
         });
         let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const btn = document.getElementById('pwaInstallBtn');
-            if (btn) { btn.hidden = false; btn.onclick = async () => { deferredPrompt.prompt(); await deferredPrompt.userChoice; }; }
-        });
+        // (install-prompt логика вынесена в js/pwa.js — общий обработчик для всех страниц)
+
         document.getElementById('pwaPushBtn')?.addEventListener('click', () => {
             if (window.EcoPush) EcoPush.enable().then(() => alert('Push включены')).catch(() => alert('Не удалось'));
         });

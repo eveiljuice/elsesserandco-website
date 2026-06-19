@@ -121,9 +121,9 @@ $logoutMessage = isset($_GET['logout']);
                         <li><a href="properties.php?category=rent" class="nav__link">Аренда</a></li>
                         <li><a href="contact.html" class="nav__link">Продать</a></li>
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
-                        <li><a href="analytics.php" class="nav__link">Аналитика</a></li>
                         <li><a href="about.html" class="nav__link">О нас</a></li>
                     </ul>
+                    <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <?php if ($user['logged_in']): ?>
                     <a href="favorites.php" class="nav__link nav__link--icon">
                         <i class="fas fa-heart"></i>
@@ -205,11 +205,15 @@ $logoutMessage = isset($_GET['logout']);
                                  alt="<?= escape($property['title']) ?>" 
                                  class="property-card__img">
                         </a>
-                        <button class="property-card__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>" 
+                        <button class="property-card__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>"
                                 data-property-id="<?= $property['id'] ?>"
                                 title="<?= $isFavorite ? 'Удалить из избранного' : 'Добавить в избранное' ?>">
                             <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
                         </button>
+                        <label class="compare-checkbox" aria-label="Добавить в сравнение">
+                            <input type="checkbox" class="compare-checkbox__input" data-property-id="<?= (int)$property['id'] ?>" onchange="toggleCompare(<?= (int)$property['id'] ?>)">
+                            <i class="fas fa-balance-scale compare-checkbox__icon"></i>
+                        </label>
                     </div>
                     <div class="property-card__body">
                         <div class="property-card__price">
@@ -402,6 +406,7 @@ $logoutMessage = isset($_GET['logout']);
     <script src="js/favorites.js"></script>
     <script src="js/autocomplete.js"></script>
     <script src="js/pwa.js" defer></script>
+    <?php include __DIR__ . '/includes/compare-bar.php'; ?>
     <script>
         // Search type toggle
         document.querySelectorAll('.search-box__toggle-btn').forEach(btn => {

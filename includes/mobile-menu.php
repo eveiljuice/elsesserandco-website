@@ -50,6 +50,11 @@
                 </a>
             </li>
             <li class="sidebar__nav-item">
+                <a href="compare.php" class="sidebar__nav-link">
+                    <i class="fas fa-balance-scale"></i> Сравнение
+                </a>
+            </li>
+            <li class="sidebar__nav-item">
                 <a href="includes/auth/logout.php" class="sidebar__nav-link sidebar__nav-link--logout">
                     <i class="fas fa-sign-out-alt"></i> Выйти
                 </a>

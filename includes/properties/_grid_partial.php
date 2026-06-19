@@ -37,6 +37,10 @@ if (empty($properties)): ?>
                 data-property-id="<?= (int)$property['id'] ?>">
             <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
         </button>
+        <label class="compare-checkbox" aria-label="Добавить в сравнение">
+            <input type="checkbox" class="compare-checkbox__input" data-property-id="<?= (int)$property['id'] ?>" onchange="toggleCompare(<?= (int)$property['id'] ?>)">
+            <i class="fas fa-balance-scale compare-checkbox__icon"></i>
+        </label>
     </div>
     <div class="property-card__body">
         <div class="property-card__price"><?= formatPrice($property['price']) ?>

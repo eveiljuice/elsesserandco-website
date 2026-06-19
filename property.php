@@ -228,6 +228,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
                         <li><a href="about.html" class="nav__link">О нас</a></li>
                     </ul>
+                    <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <?php if ($user['logged_in']): ?>
                     <a href="favorites.php" class="nav__link"><i class="fas fa-heart"></i></a>
                     <a href="dashboard.php" class="btn btn--secondary"><?= escape($user['name']) ?></a>
@@ -264,11 +265,16 @@ if ($reviewsCount > 0 && $avgRating > 0) {
                     <span id="currentImageIndex">1</span> / <?= count($images) ?>
                 </div>
                 <?php endif; ?>
-                <button class="property-gallery__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>" 
+                <button class="property-gallery__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>"
                         data-property-id="<?= $property['id'] ?>">
                     <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
                     <?= $isFavorite ? 'В избранном' : 'В избранное' ?>
                 </button>
+                <label class="compare-checkbox" aria-label="Добавить в сравнение" style="position:static; display:inline-flex; gap:6px; padding:8px 14px; box-shadow:none; background:rgba(255,255,255,.9);">
+                    <input type="checkbox" class="compare-checkbox__input" data-property-id="<?= (int)$property['id'] ?>" onchange="toggleCompare(<?= (int)$property['id'] ?>)">
+                    <i class="fas fa-balance-scale compare-checkbox__icon"></i>
+                    <span>Сравнить</span>
+                </label>
             </div>
             <?php if (count($images) > 1): ?>
             <div class="property-gallery__thumbs">
@@ -655,7 +661,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
                         <p class="agent-card__role">Эксперт по недвижимости</p>
                         
                         <div class="agent-card__actions">
-                            <a href="chat.php?agent_id=<?= $property['agent_id'] ?>&property_id=<?= $property['id'] ?>" 
+                            <a href="chat.php?user=<?= $property['agent_id'] ?>&property=<?= $property['id'] ?>"
                                class="btn btn--primary btn--full">
                                 <i class="fas fa-comments"></i> Чат с агентом
                             </a>
@@ -883,6 +889,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
     <script src="js/favorites.js"></script>
     <script src="js/pwa.js" defer></script>
     <script src="js/similar-carousel.js" defer></script>
+    <?php include __DIR__ . '/includes/compare-bar.php'; ?>
     <script>
         const galleryImages = <?= json_encode(array_column($images, 'image_url')) ?>;
         let currentIndex = 0;

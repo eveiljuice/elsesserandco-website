@@ -191,6 +191,7 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
                         <li><a href="new-buildings.php" class="nav__link">Новостройки</a></li>
                         <li><a href="about.html" class="nav__link">О нас</a></li>
                     </ul>
+                    <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <?php if ($user['logged_in']): ?>
                     <a href="favorites.php" class="nav__link"><i class="fas fa-heart"></i></a>
                     <a href="dashboard.php" class="btn btn--secondary"><?= escape($user['name']) ?></a>
@@ -363,7 +364,10 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
                 </div>
             </div>
 
+            <?php $yandexKey = (string)Config::get('YANDEX_MAPS_API_KEY', ''); ?>
+            <?php if ($yandexKey !== ''): ?>
             <div id="yandexMap" class="yandex-map" data-mode="list" style="height:360px;margin-bottom:1.5rem;border-radius:12px;"></div>
+            <?php endif; ?>
 
             <!-- Properties Grid -->
             <div id="catalogResults">
@@ -395,10 +399,14 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
                         <?php if ($property['featured']): ?>
                         <span class="property-card__badge">Рекомендуем</span>
                         <?php endif; ?>
-                        <button class="property-card__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>" 
+                        <button class="property-card__favorite favorite-btn <?= $isFavorite ? 'favorite-btn--active' : '' ?>"
                                 data-property-id="<?= $property['id'] ?>">
                             <i class="<?= $isFavorite ? 'fas' : 'far' ?> fa-heart"></i>
                         </button>
+                        <label class="compare-checkbox" aria-label="Добавить в сравнение">
+                            <input type="checkbox" class="compare-checkbox__input" data-property-id="<?= (int)$property['id'] ?>" onchange="toggleCompare(<?= (int)$property['id'] ?>)">
+                            <i class="fas fa-balance-scale compare-checkbox__icon"></i>
+                        </label>
                         <?php if ($property['is_new_building']): ?>
                         <span class="property-card__tag">Новостройка</span>
                         <?php endif; ?>
@@ -503,12 +511,16 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
 
     <?php include __DIR__ . '/includes/footer.php'; ?>
 
+    <?php include __DIR__ . '/includes/compare-bar.php'; ?>
+
+    <?php if ((string)Config::get('YANDEX_MAPS_API_KEY', '') !== ''): ?>
     <script>window.YANDEX_MAPS_KEY = <?= json_encode(Config::get('YANDEX_MAPS_API_KEY', '')) ?>;</script>
+    <script src="js/yandex-maps.js" defer></script>
+    <?php endif; ?>
     <script src="js/api.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
     <script src="js/properties-ajax.js" defer></script>
-    <script src="js/yandex-maps.js" defer></script>
     <script src="js/pwa.js" defer></script>
     <script>
         function toggleAdvancedFilters() {

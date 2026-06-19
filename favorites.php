@@ -77,6 +77,7 @@ $favoritesCount = count($favorites);
                             <?php endif; ?>
                         </a></li>
                     </ul>
+                    <?php include __DIR__ . '/includes/nav-compare-link.php'; ?>
                     <div class="user-menu">
                         <a href="dashboard.php" class="btn btn--secondary">
                             <i class="fas fa-user"></i> <?= escape($user['name']) ?>
@@ -178,6 +179,7 @@ $favoritesCount = count($favorites);
     <!-- Scripts -->
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
+    <?php include __DIR__ . '/includes/compare-bar.php'; ?>
 
 </body>
 </html>

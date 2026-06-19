@@ -112,6 +112,17 @@ function updateCompareUI() {
     if (compareLink && count > 0) {
         compareLink.href = `compare.php?ids=${list.join(',')}`;
     }
+
+    // Update nav-compare counter (header link)
+    const navCount = document.getElementById('navCompareCount');
+    if (navCount) {
+        if (count > 0) {
+            navCount.textContent = count;
+            navCount.style.display = '';
+        } else {
+            navCount.style.display = 'none';
+        }
+    }
 }
 
 /**
