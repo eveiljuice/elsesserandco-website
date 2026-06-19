@@ -498,5 +498,6 @@ $welcomeMessage = isset($_GET['welcome']);
             });
         }
     </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

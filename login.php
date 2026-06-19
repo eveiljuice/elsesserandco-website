@@ -225,5 +225,6 @@ if (isset($_GET['timeout'])) {
             }
         }
     </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

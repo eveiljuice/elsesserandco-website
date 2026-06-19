@@ -628,7 +628,7 @@ if ($building['is_completed']) {
                         
                         <?php if ($building['agent_id']): ?>
                         <div class="agent-card__actions">
-                            <a href="chat.php?agent_id=<?= $building['agent_id'] ?>&building_id=<?= $building['id'] ?>" 
+                            <a href="chat.php?user=<?= $building['agent_id'] ?>&property=<?= $building['id'] ?>"
                                class="btn btn--primary btn--full">
                                 <i class="fas fa-comments"></i> Чат с агентом
                             </a>
@@ -1116,6 +1116,7 @@ if ($building['is_completed']) {
             .properties-grid--3 { grid-template-columns: 1fr; }
         }
     </style>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>
 

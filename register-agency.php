@@ -593,6 +593,7 @@ $csrf_token = $data['csrf_token'];
             });
         });
     </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>
 

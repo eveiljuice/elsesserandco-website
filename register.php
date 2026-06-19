@@ -347,5 +347,6 @@ $pdConsentGiven = !empty($_SESSION['pd_consent']);
             }
         });
     </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

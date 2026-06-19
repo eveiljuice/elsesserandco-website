@@ -45,5 +45,6 @@ $ok = $userId !== null;
             <?php endif; ?>
         </div>
     </section>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

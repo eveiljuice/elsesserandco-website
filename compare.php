@@ -415,6 +415,7 @@ $compareFields = [
             }
         }
     </style>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>
 

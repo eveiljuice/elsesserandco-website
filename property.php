@@ -992,5 +992,6 @@ if ($reviewsCount > 0 && $avgRating > 0) {
             });
         }
     </script>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

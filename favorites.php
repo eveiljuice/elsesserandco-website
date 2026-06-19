@@ -180,6 +180,7 @@ $favoritesCount = count($favorites);
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
     <?php include __DIR__ . '/includes/compare-bar.php'; ?>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 
 </body>
 </html>

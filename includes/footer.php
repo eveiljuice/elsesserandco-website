@@ -32,6 +32,8 @@
                     <li><a href="/about.html" class="footer__link">О компании</a></li>
                     <li><a href="/about.html#team" class="footer__link">Наша команда</a></li>
                     <li><a href="/contact.html" class="footer__link">Контакты</a></li>
+                    <li><a href="/privacy.php" class="footer__link">Политика конфиденциальности</a></li>
+                    <li><a href="#" class="footer__link" onclick="if(window.EcoCookieBanner){window.EcoCookieBanner.reset();return false;}">Настройки cookie</a></li>
                 </ul>
             </div>
             

@@ -120,5 +120,6 @@ $csrf = generateCSRFToken();
             </div>
         </div>
     </section>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

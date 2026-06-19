@@ -749,6 +749,7 @@ $pageTitle = 'Новостройки Екатеринбурга';
             .properties-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>
 
