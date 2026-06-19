@@ -1,7 +1,10 @@
 <?php
 /**
- * OAuth helper — общая логика для VK / Yandex / Google / Telegram.
+ * OAuth helper — общая логика для VK / Yandex / Google.
  * Без зависимостей. Использует curl + Config + БД.
+ *
+ * Telegram Login удалён в v2.2: код колбэка и БД-колонки были выпилены
+ * миграцией 023_cleanup.sql, виджет из login/register снят.
  */
 
 require_once __DIR__ . '/check_auth.php';
@@ -74,7 +77,7 @@ final class OAuthHelper
     /**
      * Найти/создать пользователя по OAuth-профилю и залогинить.
      *
-     * @param string $provider vk|yandex|google|telegram
+     * @param string $provider vk|yandex|google
      * @param string $oauthId  ID пользователя в провайдере
      * @param string $email
      * @param string $firstName

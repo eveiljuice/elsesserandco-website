@@ -10,11 +10,27 @@ $errors = $data['errors'];
 $email = $data['email'];
 $csrf_token = $data['csrf_token'];
 
-$tgBotUsername = (string)Config::get('TELEGRAM_BOT_USERNAME', '');
-$oauthAvailable = [
-    'vk'     => (bool)Config::get('VK_CLIENT_ID'),
-    'yandex' => (bool)Config::get('YANDEX_CLIENT_ID'),
-    'google' => (bool)Config::get('GOOGLE_CLIENT_ID'),
+// OAuth-провайдеры, поддерживаемые сайтом (Telegram выпилен).
+// Кнопка всегда видна; если ключ не заполнен — disabled с подсказкой.
+$oauthProviders = [
+    'vk' => [
+        'label'   => 'VK',
+        'icon'    => 'fab fa-vk',
+        'url'     => '/oauth/vk/start.php',
+        'enabled' => (bool)Config::get('VK_CLIENT_ID'),
+    ],
+    'yandex' => [
+        'label'   => 'Яндекс',
+        'icon'    => 'fab fa-yandex',
+        'url'     => '/oauth/yandex/start.php',
+        'enabled' => (bool)Config::get('YANDEX_CLIENT_ID'),
+    ],
+    'google' => [
+        'label'   => 'Google',
+        'icon'    => 'fab fa-google',
+        'url'     => '/oauth/google/start.php',
+        'enabled' => (bool)Config::get('GOOGLE_CLIENT_ID'),
+    ],
 ];
 
 if (isset($_GET['timeout'])) {
@@ -154,34 +170,23 @@ if (isset($_GET['timeout'])) {
                         <div class="auth-divider"><span>или войти через</span></div>
 
                         <div class="oauth-buttons">
-                            <?php if ($oauthAvailable['vk']): ?>
-                            <a href="/oauth/vk/start.php" class="oauth-btn oauth-btn--vk" aria-label="Войти через VK">
-                                <i class="fab fa-vk"></i><span>VK</span>
+                            <?php foreach ($oauthProviders as $provider):
+                                $cls = 'oauth-btn--' . htmlspecialchars($provider);
+                                if (!$provider['enabled']) {
+                                    $cls .= ' oauth-btn--disabled';
+                                }
+                            ?>
+                            <?php if ($provider['enabled']): ?>
+                            <a href="<?= htmlspecialchars($provider['url']) ?>" class="oauth-btn <?= $cls ?>" aria-label="Войти через <?= htmlspecialchars($provider['label']) ?>">
+                                <i class="<?= htmlspecialchars($provider['icon']) ?>"></i><span><?= htmlspecialchars($provider['label']) ?></span>
                             </a>
+                            <?php else: ?>
+                            <span class="oauth-btn <?= $cls ?>" aria-disabled="true" title="Провайдер не настроен администратором">
+                                <i class="<?= htmlspecialchars($provider['icon']) ?>"></i><span><?= htmlspecialchars($provider['label']) ?></span>
+                            </span>
                             <?php endif; ?>
-                            <?php if ($oauthAvailable['yandex']): ?>
-                            <a href="/oauth/yandex/start.php" class="oauth-btn oauth-btn--yandex" aria-label="Войти через Яндекс">
-                                <i class="fab fa-yandex"></i><span>Яндекс</span>
-                            </a>
-                            <?php endif; ?>
-                            <?php if ($oauthAvailable['google']): ?>
-                            <a href="/oauth/google/start.php" class="oauth-btn oauth-btn--google" aria-label="Войти через Google">
-                                <i class="fab fa-google"></i><span>Google</span>
-                            </a>
-                            <?php endif; ?>
+                            <?php endforeach; ?>
                         </div>
-
-                        <?php if ($tgBotUsername): ?>
-                        <div class="oauth-telegram">
-                            <script async src="https://telegram.org/js/telegram-widget.js?22"
-                                    data-telegram-login="<?= escape($tgBotUsername) ?>"
-                                    data-size="large"
-                                    data-radius="8"
-                                    data-userpic="false"
-                                    data-auth-url="/oauth/telegram/callback.php"
-                                    data-request-access="write"></script>
-                        </div>
-                        <?php endif; ?>
 
                         <p class="auth-footer" style="margin-top: 16px;">
                             <a href="register-developer.php" style="display: inline-flex; align-items: center; gap: 8px;">
