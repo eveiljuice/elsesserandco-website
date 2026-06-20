@@ -198,13 +198,6 @@ if (isset($_GET['timeout'])) {
                             <?php endif; ?>
                             <?php endforeach; ?>
                         </div>
-
-                        <p class="auth-footer" style="margin-top: 16px;">
-                            <a href="register-developer.php" style="display: inline-flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-building"></i>
-                                Регистрация для застройщиков
-                            </a>
-                        </p>
                     </div>
                 </div>
                 

@@ -20,6 +20,7 @@ $tokenData = OAuthHelper::httpPost('https://oauth.yandex.ru/token', [
     'code'          => $code,
     'client_id'     => Config::get('YANDEX_CLIENT_ID'),
     'client_secret' => Config::get('YANDEX_CLIENT_SECRET'),
+    'redirect_uri'  => Config::get('YANDEX_REDIRECT_URI'),
 ]);
 
 if (empty($tokenData['access_token'])) {
