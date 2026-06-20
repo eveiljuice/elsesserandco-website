@@ -15,15 +15,17 @@ final class OAuthHelper
 {
     /**
      * Сгенерировать и сохранить state (защита от CSRF в OAuth callback).
+     * Хранится в сессии на 10 минут.
      */
-    public static function generateState(string $provider): string
+    public static function generateState(string $provider, ?string $redirect = null): string
     {
         $state = bin2hex(random_bytes(16));
         $_SESSION['oauth_state'] = [
             'provider' => $provider,
             'value'    => $state,
             'expires'  => time() + 600,
-            'redirect' => $_GET['redirect'] ?? '/dashboard.php',
+            'redirect' => $redirect ?? ($_GET['redirect'] ?? '/dashboard.php'),
+            'mode'     => $_SESSION['oauth_state']['mode'] ?? 'redirect', // 'redirect' | 'onetap'
         ];
         return $state;
     }
@@ -39,6 +41,44 @@ final class OAuthHelper
             return null;
         }
         return $saved;
+    }
+
+    /**
+     * Сгенерировать PKCE code_verifier (43-128 символов) и code_challenge (S256).
+     * Нужен для OAuth 2.1 (OneTap SDK v3) и PKCE-flow на сервере.
+     *
+     * @return array{verifier: string, challenge: string}
+     */
+    public static function generatePkce(): array
+    {
+        $verifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+        $challenge = rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '=');
+        return ['verifier' => $verifier, 'challenge' => $challenge];
+    }
+
+    /**
+     * Сохранить code_verifier в сессии (нужен при обмене code → token в callback).
+     */
+    public static function storeCodeVerifier(string $provider, string $verifier): void
+    {
+        $_SESSION['oauth_code_verifier'] = [
+            'provider' => $provider,
+            'verifier' => $verifier,
+            'expires'  => time() + 600,
+        ];
+    }
+
+    public static function consumeCodeVerifier(string $provider): ?string
+    {
+        $saved = $_SESSION['oauth_code_verifier'] ?? null;
+        unset($_SESSION['oauth_code_verifier']);
+        if (!$saved || $saved['provider'] !== $provider) {
+            return null;
+        }
+        if ($saved['expires'] < time()) {
+            return null;
+        }
+        return $saved['verifier'];
     }
 
     /**

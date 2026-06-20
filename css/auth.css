@@ -447,3 +447,26 @@
     justify-content: center;
 }
 
+/* VK ID OneTap — контейнер с официальной кнопкой VK ID */
+.vk-onetap-wrap {
+    margin: 0 0 16px;
+    display: flex;
+    justify-content: center;
+    min-height: 44px;
+}
+
+/* Fallback-ссылка, если SDK OneTap не загрузился */
+.vk-onetap-fallback {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #0077FF;
+    color: #fff;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: filter var(--transition-fast);
+}
+
+.vk-onetap-fallback:hover { filter: brightness(1.08); color: #fff; }

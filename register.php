@@ -12,12 +12,15 @@ $csrf_token = $data['csrf_token'];
 
 // OAuth-провайдеры, поддерживаемые сайтом (Telegram выпилен).
 // Кнопка всегда видна; если ключ не заполнен — disabled с подсказкой.
+// 'onetap' = true — означает, что для провайдера есть отдельный OneTap-блок
+// (для VK сейчас), и обычную кнопку из основного списка НЕ показываем.
 $oauthProviders = [
     'vk' => [
         'label'   => 'VK',
         'icon'    => 'fab fa-vk',
         'url'     => '/oauth/vk/start.php',
         'enabled' => (bool)Config::get('VK_CLIENT_ID'),
+        'onetap'  => true,
     ],
     'yandex' => [
         'label'   => 'Яндекс',
@@ -234,8 +237,16 @@ $pdConsentGiven = !empty($_SESSION['pd_consent']);
                         
                         <div class="auth-divider"><span>или зарегистрироваться через</span></div>
 
+                        <?php
+                        // VK ID OneTap (плашка/кнопка «Войти с VK») — показывается
+                        // если VK_CLIENT_ID заполнен в .env
+                        include __DIR__ . '/includes/vk-onetap.php';
+                        ?>
+
                         <div class="oauth-buttons">
                             <?php foreach ($oauthProviders as $providerKey => $provider):
+                                // Провайдеров с OneTap-блоком (VK) не дублируем в обычном списке.
+                                if (!empty($provider['onetap'])) continue;
                                 $cls = 'oauth-btn--' . htmlspecialchars($providerKey);
                                 if (!$provider['enabled']) {
                                     $cls .= ' oauth-btn--disabled';
