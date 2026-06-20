@@ -75,8 +75,12 @@
             const url = `/php/chat/get_messages.php?user_id=${RECEIVER_ID}&last_id=${isPolling ? lastMessageId : 0}`;
             const response = await fetch(url);
             const data = await response.json();
-            
+
             if (data.success && data.messages.length > 0) {
+                // Если на странице есть welcome-block — убираем его, заменяем реальными сообщениями
+                const welcome = chatMessages.querySelector('.chat-welcome');
+                if (welcome) welcome.remove();
+
                 if (!isPolling) {
                     // Initial load - replace all messages
                     renderMessages(data.messages);
@@ -84,23 +88,29 @@
                     // Polling - append new messages
                     appendMessages(data.messages);
                 }
-                
+
                 // Update last message ID
                 const lastMsg = data.messages[data.messages.length - 1];
                 if (lastMsg) {
                     lastMessageId = lastMsg.id;
                 }
-                
+
                 // Scroll to bottom on initial load or new messages
                 scrollToBottom(!isPolling);
             } else if (!isPolling) {
-                // No messages on initial load
-                chatMessages.innerHTML = `
-                    <div class="chat-messages__empty">
-                        <i class="fas fa-comments"></i>
-                        <p>Начните диалог</p>
-                    </div>
-                `;
+                // Нет сообщений — оставляем welcome-block с приветствием
+                // (он уже есть в HTML при заходе на ?user=X с новым собеседником)
+                const existingWelcome = chatMessages.querySelector('.chat-welcome');
+                if (!existingWelcome) {
+                    // Фоллбек на случай динамической загрузки без welcome
+                    chatMessages.innerHTML = `
+                        <div class="chat-messages__empty">
+                            <div class="empty-icon"><i class="far fa-comment-dots"></i></div>
+                            <h3>Начните диалог</h3>
+                            <p>Напишите первое сообщение — история переписки появится здесь.</p>
+                        </div>
+                    `;
+                }
             }
         } catch (error) {
             console.error('Error loading messages:', error);
@@ -145,7 +155,10 @@
     function createMessageHTML(msg) {
         const isMine = msg.sender_id === CURRENT_USER_ID;
         const time = formatTime(msg.created_at);
-        
+        // Берём первую букву имени отправителя; если её нет — фоллбек "•"
+        const senderLetter = (msg.sender_name || ' ').trim().charAt(0).toUpperCase() || '•';
+        const senderAvatar = msg.sender_avatar || '';
+
         let propertyLink = '';
         if (msg.property_id && msg.property_title) {
             propertyLink = `
@@ -154,18 +167,34 @@
                 </a>
             `;
         }
-        
+
+        // Аватар-блок: если есть avatar_url — <img>, иначе фоллбек-буква
+        const avatarBlock = senderAvatar
+            ? `<img class="chat-avatar-img" src="${escapeHtml(senderAvatar)}" alt="${escapeHtml(senderLetter)}" data-letter="${escapeHtml(senderLetter)}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling&&(this.nextElementSibling.style.display='flex');">` +
+              `<span class="chat-avatar-fallback" data-letter="${escapeHtml(senderLetter)}" style="display:none;">${escapeHtml(senderLetter)}</span>`
+            : `<span class="chat-avatar-fallback" data-letter="${escapeHtml(senderLetter)}">${escapeHtml(senderLetter)}</span>`;
+
+        // Иконка статуса: pending — часы, failed — ошибка, иначе — галочки
+        let statusIcon = '';
+        if (msg.pending) {
+            statusIcon = '<span class="chat-message__status" title="Отправляется..."><i class="fas fa-clock"></i></span>';
+        } else if (msg.failed) {
+            statusIcon = '<span class="chat-message__status chat-message__status--failed" title="Не отправлено"><i class="fas fa-exclamation-circle"></i></span>';
+        } else if (isMine) {
+            statusIcon = `<span class="chat-message__status">${msg.is_read ? '<i class="fas fa-check-double"></i>' : '<i class="fas fa-check"></i>'}</span>`;
+        }
+
         return `
-            <div class="chat-message ${isMine ? 'chat-message--mine' : 'chat-message--theirs'}" 
-                 data-message-id="${msg.id}">
-                ${!isMine ? `<div class="chat-message__avatar">${msg.sender_name.charAt(0).toUpperCase()}</div>` : ''}
+            <div class="chat-message ${isMine ? 'chat-message--mine' : 'chat-message--theirs'}"
+                 data-message-id="${escapeHtml(String(msg.id))}">
+                ${!isMine ? `<div class="chat-message__avatar">${avatarBlock}</div>` : ''}
                 <div class="chat-message__content">
                     ${propertyLink}
                     <div class="chat-message__bubble">
                         <div class="chat-message__text">${escapeHtml(msg.message)}</div>
                         <div class="chat-message__meta">
                             <span class="chat-message__time">${time}</span>
-                            ${isMine ? `<span class="chat-message__status">${msg.is_read ? '<i class="fas fa-check-double"></i>' : '<i class="fas fa-check"></i>'}</span>` : ''}
+                            ${statusIcon}
                         </div>
                     </div>
                 </div>
@@ -173,65 +202,137 @@
         `;
     }
     
-    // Send message
+    // Send message — оптимистичный UI.
+    // Сообщение показывается сразу (статус pending), POST идёт в фоне.
+    // При успехе — заменяем временный id на настоящий, снимаем pending.
+    // При ошибке — помечаем сообщение красным, текст остаётся в textarea.
+    // sendButton НЕ блокируется на время POST — пользователь может
+    // отправлять следующее сообщение сразу.
     async function handleSendMessage(e) {
         e.preventDefault();
-        
+
         const message = messageInput.value.trim();
         if (!message || !RECEIVER_ID) return;
-        
-        // Disable form while sending
-        sendButton.disabled = true;
-        
+
+        // 1) Сразу очищаем поле и сбрасываем высоту — UI отзывчивый
+        messageInput.value = '';
+        autoResizeTextarea();
+        messageInput.focus();
+
+        // 2) Убираем welcome-блок (если это первое сообщение)
+        const welcome = chatMessages.querySelector('.chat-welcome');
+        if (welcome) welcome.remove();
+
+        // 3) Оптимистичный рендер — сообщение появляется мгновенно
+        const tempId = 'tmp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+        const tempMsg = {
+            id: tempId,
+            sender_id: CURRENT_USER_ID,
+            message: message,
+            created_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
+            sender_name: CURRENT_USER_NAME || '',
+            sender_avatar: CURRENT_USER_AVATAR || '',
+            is_read: false,
+            pending: true,
+            property_id: null,
+            property_title: null
+        };
+        const tempNode = appendSingleMessage(tempMsg);
+        scrollToBottom(true);
+
+        // 4) Отправляем POST в фоне (НЕ блокируем форму)
         try {
-            const formData = new FormData(chatForm);
             const response = await fetch('/php/chat/send_message.php', {
                 method: 'POST',
                 headers: csrfHeaders(),
                 body: JSON.stringify({
                     receiver_id: RECEIVER_ID,
                     message: message,
-                    property_id: formData.get('property_id') || null
+                    property_id: getPropertyIdFromForm()
                 })
             });
-            
+
             const data = await response.json();
-            
+
             if (data.success) {
-                // Clear input
-                messageInput.value = '';
-                autoResizeTextarea();
-                
-                // Add message to chat
-                const msgElement = document.createElement('div');
-                msgElement.innerHTML = createMessageHTML({
-                    id: data.message.id,
-                    sender_id: CURRENT_USER_ID,
-                    message: data.message.message,
-                    created_at: data.message.created_at,
-                    sender_name: data.message.sender_name,
-                    is_read: false
-                });
-                
-                // Remove empty state if exists
-                const emptyState = chatMessages.querySelector('.chat-messages__empty');
-                if (emptyState) emptyState.remove();
-                
-                chatMessages.appendChild(msgElement.firstElementChild);
-                scrollToBottom(true);
-                
-                // Update last message ID
-                lastMessageId = data.message.id;
+                // Заменяем temp-сообщение реальным (снимаем pending)
+                if (tempNode && tempNode.parentNode) {
+                    const newNode = appendSingleMessage({
+                        id: data.message.id,
+                        sender_id: CURRENT_USER_ID,
+                        message: data.message.message,
+                        created_at: data.message.created_at,
+                        sender_name: data.message.sender_name,
+                        sender_avatar: CURRENT_USER_AVATAR || '',
+                        is_read: false,
+                        property_id: null,
+                        property_title: null
+                    });
+                    tempNode.parentNode.replaceChild(newNode, tempNode);
+                }
+                lastMessageId = Math.max(lastMessageId, data.message.id || 0);
             } else {
-                alert(data.error || 'Ошибка отправки');
+                markMessageFailed(tempNode);
+                var msg = data.message || data.error;
+                var friendly = friendlyChatError(msg, response.status);
+                alert(friendly);
             }
         } catch (error) {
-            console.error('Error sending message:', error);
-            alert('Ошибка отправки сообщения');
-        } finally {
-            sendButton.disabled = false;
-            messageInput.focus();
+            console.error('Send error:', error);
+            markMessageFailed(tempNode);
+            alert('Ошибка сети. Сообщение помечено как недоставленное.');
         }
+    }
+
+    function getPropertyIdFromForm() {
+        // Берём property_id из скрытого поля формы (если есть).
+        var input = chatForm && chatForm.querySelector('input[name="property_id"]');
+        return input ? (input.value || null) : null;
+    }
+
+    function appendSingleMessage(msg) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = createMessageHTML(msg);
+        const node = wrapper.firstElementChild;
+        if (node) chatMessages.appendChild(node);
+        return node;
+    }
+
+    function markMessageFailed(node) {
+        if (!node) return;
+        node.classList.add('chat-message--failed');
+        // Меняем иконку clock → exclamation-circle через data-атрибут,
+        // который createMessageHTML уже нарисовал.
+        var statusEl = node.querySelector('.chat-message__status');
+        if (statusEl) {
+            statusEl.classList.add('chat-message__status--failed');
+            statusEl.setAttribute('title', 'Не отправлено — кликните для повтора');
+            statusEl.innerHTML = '<i class="fas fa-exclamation-circle"></i>';
+            statusEl.style.cursor = 'pointer';
+            statusEl.onclick = function () {
+                var text = node.querySelector('.chat-message__text');
+                if (text) {
+                    messageInput.value = text.textContent;
+                    messageInput.focus();
+                }
+                node.remove();
+            };
+        }
+    }
+
+    // Переводим серверные ошибки в понятные пользователю сообщения.
+    function friendlyChatError(rawError, status) {
+        if (!rawError) return 'Не удалось отправить сообщение.';
+        var e = String(rawError).toLowerCase();
+        if (status === 401 || e.indexOf('unauthor') !== -1) return 'Сессия истекла. Войдите снова.';
+        if (status === 403) return 'Нет прав для отправки сообщений.';
+        if (status === 429 || e.indexOf('rate') !== -1 || e.indexOf('too many') !== -1) {
+            return 'Слишком много сообщений. Подождите минуту.';
+        }
+        if (e.indexOf('email_not_verified') !== -1) return 'Подтвердите почту, чтобы писать сообщения.';
+        if (e.indexOf('missing') !== -1) return 'Заполните текст сообщения.';
+        if (e === 'server error' || status >= 500) return 'Серверная ошибка. Попробуйте позже.';
+        return rawError;
     }
     
     // Handle Enter key
@@ -251,13 +352,10 @@
     // Scroll to bottom
     function scrollToBottom(smooth = false) {
         if (!chatMessages) return;
-        
-        setTimeout(() => {
-            chatMessages.scrollTo({
-                top: chatMessages.scrollHeight,
-                behavior: smooth ? 'smooth' : 'auto'
-            });
-        }, 100);
+        chatMessages.scrollTo({
+            top: chatMessages.scrollHeight,
+            behavior: smooth ? 'smooth' : 'auto'
+        });
     }
     
     function startSSE() {
@@ -278,6 +376,7 @@
                         message: m.message,
                         created_at: m.created_at,
                         sender_name: m.sender_first_name || '',
+                        sender_avatar: m.sender_avatar || '',
                         is_read: !!m.is_read,
                         property_id: null,
                         property_title: null
