@@ -57,6 +57,9 @@ jobs:
 
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_PATH: ${{ secrets.VPS_PATH }}
+          BACKUP_DIR: /var/backups/elsesserandco
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
@@ -67,7 +70,7 @@ jobs:
           script: |
             set -euo pipefail
 
-            DEPLOY_PATH="${{ secrets.VPS_PATH }}"
+            : "${DEPLOY_PATH:?DEPLOY_PATH is required (env from GitHub Actions)}"
             BACKUP_DIR="/var/backups/elsesserandco"
             STAMP=$(date +%F-%H%M%S)
 
@@ -112,7 +115,7 @@ jobs:
             php database/migrate.php
 
             echo "==> [5/6] Fixing permissions"
-            sudo chown -R "${{ secrets.VPS_USER }}":www-data "${DEPLOY_PATH}"
+            sudo chown -R "$(whoami)":www-data "${DEPLOY_PATH}"
             find . -type d -not -path './.git*' -exec chmod 775 {} \;
             find . -type f -not -path './.git*' -exec chmod 664 {} \;
             chmod 640 .env || true
