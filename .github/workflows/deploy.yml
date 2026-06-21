@@ -68,7 +68,7 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           command_timeout: 8m
           envs: RELEASE_DIR,BACKUP_DIR,REMOTE_USER
-          script_stop: true
+          envs_format: multiple-keys
           script: |
             set -euo pipefail
 
