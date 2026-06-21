@@ -1,7 +1,7 @@
 <?php
 /**
  * Cron: php /var/www/elsesserandco-site.local/cron/saved_search_alerts.php
- * Schedule example: every 15 minutes -> "*/15 * * * * deploy"
+ * Recommended schedule: every 15 minutes (see crontab -e).
  */
 declare(strict_types=1);
 
