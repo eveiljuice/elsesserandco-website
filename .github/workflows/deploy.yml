@@ -72,7 +72,6 @@ jobs:
           script: |
             set -euo pipefail
 
-            echo "DEBUG DEPLOY_PATH=${DEPLOY_PATH:-<unset>} BACKUP_DIR=${BACKUP_DIR:-<unset>} REMOTE_USER=${REMOTE_USER:-<unset>}" >&2
             : "${DEPLOY_PATH:?DEPLOY_PATH is required (env from GitHub Actions)}"
             BACKUP_DIR="/var/backups/elsesserandco"
             STAMP=$(date +%F-%H%M%S)
