@@ -104,7 +104,9 @@ jobs:
             git clean -fd \
               -e .env -e .env.local \
               -e logs/ -e cache/ -e session/ -e uploads/ \
-              -e images/uploads/
+              -e images/uploads/ \
+              -e includes/auth/check_auth.php \
+              -e includes/config/local.php
 
             echo "==> [4/6] Applying SQL migrations"
             php database/migrate.php
@@ -113,7 +115,8 @@ jobs:
             sudo chown -R "${{ secrets.VPS_USER }}":www-data "${DEPLOY_PATH}"
             find . -type d -not -path './.git*' -exec chmod 775 {} \;
             find . -type f -not -path './.git*' -exec chmod 664 {} \;
-            chmod 600 .env || true
+            chmod 640 .env || true
+            sudo chgrp www-data .env || true
             # Папки на запись веб-серверу
             for dir in logs cache session uploads images/uploads; do
               if [ -d "$dir" ]; then
@@ -122,10 +125,14 @@ jobs:
             done
 
             echo "==> [6/6] Reloading services"
-            # Reload PHP-FPM (если есть), иначе Apache (если mod_php)
+            # Reload both FPM pools (elsesserandco runs on 8.1, clickandeat on 8.3 on the same VPS).
             if systemctl is-active --quiet php8.1-fpm; then
               sudo systemctl reload php8.1-fpm
               echo "    php8.1-fpm reloaded"
+            fi
+            if systemctl is-active --quiet php8.3-fpm; then
+              sudo systemctl reload php8.3-fpm
+              echo "    php8.3-fpm reloaded"
             fi
             sudo systemctl reload apache2
             echo "    apache2 reloaded"
