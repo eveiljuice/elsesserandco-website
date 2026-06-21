@@ -1,7 +1,7 @@
 <?php
 /**
  * Cron: php /var/www/elsesserandco-site.local/cron/saved_search_alerts.php
- * Рекомендуется: */15 * * * * deploy
+ * Schedule example: every 15 minutes -> "*/15 * * * * deploy"
  */
 declare(strict_types=1);
 
