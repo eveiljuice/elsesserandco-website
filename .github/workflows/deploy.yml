@@ -57,10 +57,6 @@ jobs:
 
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.2.0
-        env:
-          DEPLOY_PATH: ${{ secrets.VPS_PATH }}
-          BACKUP_DIR: /var/backups/elsesserandco
-          REMOTE_USER: ${{ secrets.VPS_USER }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
