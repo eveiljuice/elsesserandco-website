@@ -57,6 +57,10 @@ jobs:
 
       - name: SSH deploy
         uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_PATH: ${{ secrets.VPS_PATH }}
+          BACKUP_DIR: /var/backups/elsesserandco
+          REMOTE_USER: ${{ secrets.VPS_USER }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
@@ -68,6 +72,7 @@ jobs:
           script: |
             set -euo pipefail
 
+            echo "DEBUG DEPLOY_PATH=${DEPLOY_PATH:-<unset>} BACKUP_DIR=${BACKUP_DIR:-<unset>} REMOTE_USER=${REMOTE_USER:-<unset>}" >&2
             : "${DEPLOY_PATH:?DEPLOY_PATH is required (env from GitHub Actions)}"
             BACKUP_DIR="/var/backups/elsesserandco"
             STAMP=$(date +%F-%H%M%S)
