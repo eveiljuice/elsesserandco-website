@@ -63,6 +63,7 @@ jobs:
           port: ${{ secrets.VPS_PORT }}
           key: ${{ secrets.VPS_SSH_KEY }}
           command_timeout: 8m
+          request_pty: true
           script: |
             set -euo pipefail
 
