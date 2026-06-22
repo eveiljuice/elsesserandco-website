@@ -101,16 +101,16 @@
 - Если потребуется вернуть — потребуется восстановить `oauth/telegram/callback.php`, добавить колонки `telegram_id` / `telegram_username` и расширить ENUM `users.oauth_provider`.
 - Поля `TELEGRAM_BOT_TOKEN` / `TELEGRAM_BOT_USERNAME` в `.env.example` помечены как legacy, чтобы старые конфиги не ломали парсинг.
 
-### 2.6 Подтверждение email ✅ *(v2.1, расширено в v2.2)*
-- **URL:** `/verify-email.php?token={token}`
-- **Файлы:** `verify-email.php`, `includes/auth/email_verification.php`, `js/dashboard.js`
-- **API:** `POST /php/auth/resend_verification.php` (повторная отправка для текущего юзера, с rate-limit 60 сек)
-- **Поля БД:** `users.email_verified_at`, `users.email_verification_token`, `users.email_verification_expires_at`
-- **Токен:** sha256-хеш, действует 24 часа
-- **Автоотправка:** при `register.php` (новый юзер) и через OAuth (`email_verified_at = NOW()` сразу).
-- **Сессия:** `$_SESSION['user_email_verified']` — кешируется при логине и обновляется в `consumeEmailVerification()` после успешного verify.
-- **UI (v2.2):** баннер в `dashboard.php` (если `email_verified_at IS NULL`) с кнопкой «Отправить снова» и ссылкой на почтовый домен.
-- **Мягкий гейт (v2.2):** неверифицированные залогиненные пользователи получают `403 email_not_verified` при попытке отправить сообщение агенту в `php/chat/send_message.php`. Заявки (`inquiries/submit.php`) гостевые — гейт не ставим, чтобы не терять лиды.
+### 2.6 Подтверждение email ❌ *(отключено в v2.2)*
+- **Ранее:** бэкенд (`includes/auth/email_verification.php`, `verify-email.php`), API `/php/auth/resend_verification.php`, баннер в dashboard, мягкий гейт в чате.
+- **Сейчас:** функции остались в коде, но не вызываются из публичных потоков. Баннер в `dashboard.php` убран, письмо из `register.php` не отправляется, чат и заявки доступны без проверки.
+- **Причина:** клиент пожаловался, что проверка мешает — пользователи не понимали, что нужно делать, а чат с агентом не работал. Логика оставлена в коде на случай, если понадобится вернуть (включается за ~10 минут правок).
+- **Что нужно сделать, чтобы вернуть:**
+  1. В `php/chat/send_message.php` раскомментировать блок `if (!isEmailVerified()) { ... 403 ... }`.
+  2. В `register.php` раскомментировать вызов `sendEmailVerification($userId)`.
+  3. В `dashboard.php` добавить блок `<!-- Email verification banner -->` (можно взять из git-истории).
+  4. Подключить `js/dashboard.js`.
+- **Helper `isEmailVerified()`** в `includes/auth/check_auth.php` оставлен — использует `$_SESSION['user_email_verified']`, который заполняется при логине.
 
 ### 2.7 CSRF + Session ✅
 - **Файл:** `includes/auth/check_auth.php`

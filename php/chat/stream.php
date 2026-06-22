@@ -43,7 +43,8 @@ $currentLast = $lastId;
 while (time() < $deadline && !connection_aborted()) {
     $stmt = $pdo->prepare("
         SELECT m.id, m.sender_id, m.message, m.created_at, m.is_read,
-               u.first_name AS sender_first_name
+               u.first_name AS sender_first_name,
+               u.avatar AS sender_avatar
         FROM messages m
         JOIN users u ON u.id = m.sender_id
         WHERE ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?))

@@ -33,9 +33,10 @@ try {
     $whereLastId = $lastMessageId > 0 ? "AND m.id > ?" : "";
     
     $sql = "
-        SELECT m.*, 
-               u.first_name as sender_first_name, 
+        SELECT m.*,
+               u.first_name as sender_first_name,
                u.last_name as sender_last_name,
+               u.avatar as sender_avatar,
                p.title as property_title
         FROM messages m
         JOIN users u ON m.sender_id = u.id
@@ -69,6 +70,7 @@ try {
             'is_read' => (bool)$msg['is_read'],
             'created_at' => $msg['created_at'],
             'sender_name' => $msg['sender_first_name'] . ' ' . $msg['sender_last_name'],
+            'sender_avatar' => $msg['sender_avatar'] ?? null,
             'is_mine' => $msg['sender_id'] == $userId
         ];
     }

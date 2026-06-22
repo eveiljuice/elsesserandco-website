@@ -697,7 +697,6 @@ $roomsType = ($_POST['rooms_type'] ?? null) ?: null;
 - `verify-email.php` + `includes/auth/email_verification.php`. Письмо отправляется автоматически при регистрации, повтор — POST `/php/auth/resend_verification.php`.
 - OAuth (`includes/auth/oauth_helper.php`) + папка `/oauth/{vk,yandex,google,telegram}/` с `start.php`/`callback.php`.
   Конфиг — в `.env` (см. `.env.example`).
-- `analytics.php` — публичная аналитика цен по районам (Chart.js).
 - `sitemap.php` (отдаётся как `/sitemap.xml` через `.htaccess`) + `robots.txt`.
 - PWA: `manifest.webmanifest`, `sw.js`, `offline.html`, `js/pwa.js`.
 - Web Push: `includes/push/WebPush.php` (native VAPID + aes128gcm), `includes/push/Notifier.php`,

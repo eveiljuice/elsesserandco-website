@@ -35,17 +35,6 @@ if (!isLoggedIn()) {
 
 requireJsonCsrf();
 
-// Мягкий гейт: неверифицированные пользователи не могут писать агенту.
-if (!isEmailVerified()) {
-    http_response_code(403);
-    echo json_encode([
-        'success' => false,
-        'error'   => 'email_not_verified',
-        'message' => 'Подтвердите почту, чтобы писать сообщения агенту.',
-    ]);
-    exit;
-}
-
 $senderId = getCurrentUserId();
 
 // Парсим JSON один раз

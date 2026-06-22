@@ -110,10 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $success = true;
                     $userId = (int)$pdo->lastInsertId();
 
-                    // Отправляем письмо с подтверждением email
-                    sendEmailVerification($userId);
-
-                    // Автоматический вход (email будет помечен как unverified до подтверждения)
+                    // Автоматический вход
                     session_regenerate_id(true);
 
                     $_SESSION['user_id'] = $userId;

@@ -176,14 +176,6 @@ $welcomeMessage = isset($_GET['welcome']);
             </div>
             <?php endif; ?>
 
-            <?php if (empty($userData['email_verified_at'])): ?>
-            <div class="alert alert--warning" id="verifyEmailBanner">
-                <i class="fas fa-envelope"></i>
-                <span>Подтвердите email — проверьте почту или</span>
-                <button type="button" class="btn btn--small" id="resendVerifyBtn">отправить снова</button>
-            </div>
-            <?php endif; ?>
-
             <div class="dashboard-pwa card">
                 <div class="dashboard-pwa__content">
                     <h3>Приложение и уведомления</h3>
@@ -194,28 +186,6 @@ $welcomeMessage = isset($_GET['welcome']);
                     <button type="button" class="btn btn--primary" id="pwaPushBtn">Включить push-уведомления</button>
                 </div>
             </div>
-
-            <!-- Email verification banner (F) -->
-            <?php if (empty($userData['email_verified_at'])): ?>
-            <div class="verify-email-banner" role="status" id="verifyEmailBanner">
-                <div class="verify-email-banner__icon"><i class="fas fa-envelope"></i></div>
-                <div class="verify-email-banner__content">
-                    <strong>Подтвердите вашу почту.</strong>
-                    Мы отправили письмо на <span class="verify-email-banner__email"><?= htmlspecialchars($userData['email']) ?></span>.
-                    Без подтверждения вы не сможете писать агентам.
-                    <div class="verify-email-banner__actions">
-                        <button type="button" id="resendVerification" class="verify-email-banner__btn" data-csrf="<?= htmlspecialchars(generateCSRFToken()) ?>">
-                            <i class="fas fa-paper-plane"></i> Отправить снова
-                        </button>
-                        <a href="https://<?= htmlspecialchars(preg_replace('~^[^@]+@~', '', $userData['email'])) ?>" target="_blank" class="verify-email-banner__btn verify-email-banner__btn--link">
-                            Открыть почту <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
-                    <div class="verify-email-banner__message" id="resendMessage" hidden></div>
-                </div>
-                <button type="button" class="verify-email-banner__close" id="verifyEmailBannerClose" aria-label="Скрыть">&times;</button>
-            </div>
-            <?php endif; ?>
 
             <!-- Welcome Section -->
             <div class="dashboard__header">
@@ -489,7 +459,6 @@ $welcomeMessage = isset($_GET['welcome']);
     <script src="js/api.js"></script>
     <script src="js/navigation.js"></script>
     <script src="js/favorites.js"></script>
-    <script src="js/dashboard.js" defer></script>
     <script src="js/pwa.js" defer></script>
     <script>
         document.getElementById('resendVerifyBtn')?.addEventListener('click', async () => {
