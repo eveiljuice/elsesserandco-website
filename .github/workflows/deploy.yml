@@ -99,6 +99,9 @@ jobs:
             find "${BACKUP_DIR}" -name 'db-*.sql.gz' -mtime +14 -delete
 
             echo "==> [3/6] git pull (preserve .env / logs / uploads / cache)"
+            # Fix git "dubious ownership" when deploy user != repo owner
+            git config --global --add safe.directory "${RELEASE_DIR}"
+            git config --global --add safe.directory '*'
             git fetch --all --prune
             git reset --hard origin/main
             git clean -fd \
