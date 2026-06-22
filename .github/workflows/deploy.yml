@@ -118,12 +118,10 @@ jobs:
             php database/migrate.php
 
             echo "==> [5/6] Fixing permissions"
-            sudo chown -R "${REMOTE_USER}":www-data "${RELEASE_DIR}"
-            find . -type d -not -path './.git*' -exec chmod 775 {} \;
-            find . -type f -not -path './.git*' -exec chmod 664 {} \;
+            # chown already done in [3/6]; just fix .env and writable dirs for www-data.
             chmod 640 .env || true
             sudo chgrp www-data .env || true
-            # Папки на запись веб-серверу
+            # Writable dirs for web server (only these, not the whole tree).
             for dir in logs cache session uploads images/uploads; do
               if [ -d "$dir" ]; then
                 sudo chmod -R 775 "${RELEASE_DIR}/${dir}"
