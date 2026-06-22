@@ -57,23 +57,18 @@ jobs:
 
       - name: SSH deploy
         uses: appleboy/ssh-action@master
-        env:
-          RELEASE_DIR: ${{ secrets.VPS_PATH }}
-          BACKUP_DIR: /var/backups/elsesserandco
-          REMOTE_USER: ${{ secrets.VPS_USER }}
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           port: ${{ secrets.VPS_PORT }}
           key: ${{ secrets.VPS_SSH_KEY }}
           command_timeout: 8m
-          envs: RELEASE_DIR,BACKUP_DIR,REMOTE_USER
-          envs_format: multiple-keys
           script: |
             set -euo pipefail
 
-            : "${RELEASE_DIR:?RELEASE_DIR is required (env from GitHub Actions)}"
+            RELEASE_DIR="${{ secrets.VPS_PATH }}"
             BACKUP_DIR="/var/backups/elsesserandco"
+            REMOTE_USER="${{ secrets.VPS_USER }}"
             STAMP=$(date +%F-%H%M%S)
 
             echo "==> [1/6] cd ${RELEASE_DIR}"
