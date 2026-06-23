@@ -393,7 +393,7 @@ $pageSubtitle = $category === 'rent' ? 'Снять квартиру в Екат�
                 <article class="property-card property-card--compact">
                     <div class="property-card__image">
                         <a href="property.php?id=<?= $property['id'] ?>">
-                            <img src="<?= escape($property['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>" 
+                            <img src="<?= imgSrc($property['primary_image']?? 'https://via.placeholder.com/600x400') ?>" 
                                  alt="<?= escape($roomsText) ?>" class="property-card__img" loading="lazy">
                         </a>
                         <?php if ($property['featured']): ?>

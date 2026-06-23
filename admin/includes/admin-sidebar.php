@@ -6,7 +6,7 @@ $currentCategory = $_GET['category'] ?? '';
     <nav class="admin-nav">
         <a href="index.php" class="admin-nav__item <?= $currentPage === 'index.php' ? 'admin-nav__item--active' : '' ?>">
             <i class="fas fa-tachometer-alt"></i>
-            <span>Dashboard</span>
+            <span>Панель управления</span>
         </a>
         
         <div class="admin-nav__divider">Готовое жильё</div>
@@ -51,16 +51,16 @@ $currentCategory = $_GET['category'] ?? '';
         </a>
         
         <div class="admin-nav__divider">Заявки и клиенты</div>
-        
-        <a href="developer-applications.php" class="admin-nav__item <?= $currentPage === 'developer-applications.php' ? 'admin-nav__item--active' : '' ?>">
-            <i class="fas fa-briefcase"></i>
-            <span>Заявки застройщиков</span>
+
+        <a href="agent-applications.php" class="admin-nav__item <?= $currentPage === 'agent-applications.php' ? 'admin-nav__item--active' : '' ?>">
+            <i class="fas fa-user-plus"></i>
+            <span>Заявки на агента</span>
             <?php
-            $pendingDevelopersStmt = $pdo->query("SELECT COUNT(*) FROM developer_applications WHERE status IN ('pending', 'reviewing')");
-            $pendingDevelopers = $pendingDevelopersStmt->fetchColumn();
-            if ($pendingDevelopers > 0):
+            $pendingAgentsStmt = $pdo->query("SELECT COUNT(*) FROM agent_applications WHERE status IN ('pending', 'reviewing')");
+            $pendingAgents = $pendingAgentsStmt->fetchColumn();
+            if ($pendingAgents > 0):
             ?>
-            <span class="admin-nav__badge"><?= $pendingDevelopers ?></span>
+            <span class="admin-nav__badge"><?= $pendingAgents ?></span>
             <?php endif; ?>
         </a>
         
@@ -69,6 +69,18 @@ $currentCategory = $_GET['category'] ?? '';
             <span>Заявки клиентов</span>
             <?php if (isset($newCount) && $newCount > 0): ?>
             <span class="admin-nav__badge"><?= $newCount ?></span>
+            <?php endif; ?>
+        </a>
+
+        <a href="password-resets.php" class="admin-nav__item <?= $currentPage === 'password-resets.php' ? 'admin-nav__item--active' : '' ?>">
+            <i class="fas fa-key"></i>
+            <span>Сброс пароля</span>
+            <?php
+            $pendingResetsStmt = $pdo->query("SELECT COUNT(*) FROM password_reset_requests WHERE status = 'pending'");
+            $pendingResets = (int)$pendingResetsStmt->fetchColumn();
+            if ($pendingResets > 0):
+            ?>
+            <span class="admin-nav__badge"><?= $pendingResets ?></span>
             <?php endif; ?>
         </a>
         

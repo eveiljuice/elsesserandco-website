@@ -100,6 +100,32 @@ final class OAuthHelper
         return is_array($data) ? $data : [];
     }
 
+    /**
+     * POST с разделением параметров на query string и body.
+     * Нужно для VK ID OAuth 2.1: SDK шлёт параметры авторизации (grant_type,
+     * code_verifier, device_id, state, client_id, redirect_uri) в query, а
+     * сам code — в body как application/x-www-form-urlencoded.
+     *
+     * @param array<string,string> $queryParams
+     * @param array<string,string> $bodyParams
+     */
+    public static function httpPostQueryAndBody(string $url, array $queryParams, array $bodyParams): array
+    {
+        $full = $url . (str_contains($url, '?') ? '&' : '?') . http_build_query($queryParams);
+        $ch = curl_init($full);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => http_build_query($bodyParams),
+            CURLOPT_HTTPHEADER     => ['Accept: application/json'],
+            CURLOPT_TIMEOUT        => 15,
+        ]);
+        $body = curl_exec($ch);
+        curl_close($ch);
+        $data = json_decode((string)$body, true);
+        return is_array($data) ? $data : [];
+    }
+
     public static function httpGet(string $url, array $headers = []): array
     {
         $ch = curl_init($url);

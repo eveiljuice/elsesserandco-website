@@ -2,24 +2,34 @@
 /**
  * VK OAuth — Callback. Меняет code на access_token и логинит пользователя.
  *
- * Поддерживает два потока:
+ * Поддерживает два потока согласно VK ID Web SDK v3 (https://github.com/VKCOM/vkid-web-sdk):
  *  1) Стандартный redirect-flow (oauth/vk/start.php → /authorize → callback)
- *  2) OneTap SDK v3 — после успешного входа SDK редиректит пользователя
- *     на этот же callback с параметрами code и state в URL.
+ *  2) OneTap / Auth.login() — после успешного входа SDK редиректит
+ *     пользователя на этот же callback с параметрами:
+ *       code, state, device_id, type=code_v2, expires_in
+ *     PKCE code_verifier SDK хранит в JS-куке 'vkid_sdk:codeVerifier'.
  *
- * Используется PKCE: code_verifier хранится в сессии после /start или
- * при AJAX-обмене через /oauth/vk/exchange.php.
+ * Обмен code → access_token (OAuth 2.1 + PKCE):
+ *   POST https://id.vk.com/oauth2/auth
+ *     query : grant_type, client_id, redirect_uri, code_verifier, device_id, state
+ *     body  : code=<the_code>
+ *   response: JSON { access_token, refresh_token, expires_in, state, ... }
+ *
+ * Затем профиль:
+ *   POST https://id.vk.com/oauth2/user_info
+ *     body  : access_token=<token>
+ *   или GET с параметрами в query (работает оба варианта).
  */
 
 require_once __DIR__ . '/../../includes/config/database.php';
 require_once __DIR__ . '/../../includes/auth/oauth_helper.php';
 
-$code  = trim($_GET['code']  ?? '');
-$state = trim($_GET['state'] ?? '');
-$deviceId = trim($_GET['device_id'] ?? ''); // для OneTap потока
+$code      = trim($_GET['code']      ?? '');
+$state     = trim($_GET['state']     ?? '');
+$deviceId  = trim($_GET['device_id'] ?? '');
 
+// state хранится в PHP-сессии (мы кладём туда в vk-onetap.php / start.php)
 $saved = OAuthHelper::consumeState('vk', $state);
-$codeVerifier = OAuthHelper::consumeCodeVerifier('vk');
 
 if ($code === '' || !$saved) {
     http_response_code(400);
@@ -35,19 +45,35 @@ if (!$clientId || !$clientSecret) {
     die('VK OAuth не настроен на сервере.');
 }
 
-// === Шаг 1: обмен code → access_token (OAuth 2.1 + PKCE) ===
-$tokenData = OAuthHelper::httpPost('https://id.vk.com/oauth2/auth', array_filter([
+// PKCE code_verifier:
+//  1) Сначала из PHP-сессии (кладётся в vk-onetap.php и start.php).
+//  2) Если нет — из JS-куки 'vkid_sdk:codeVerifier', которую ставит сам VK ID SDK v3.
+$codeVerifier = OAuthHelper::consumeCodeVerifier('vk');
+if ($codeVerifier === null && isset($_COOKIE['vkid_sdk:codeVerifier'])) {
+    $codeVerifier = (string)$_COOKIE['vkid_sdk:codeVerifier'];
+}
+
+// === Шаг 1: обмен code → access_token (OAuth 2.1, формат как в SDK) ===
+// Параметры разделены: query (метаданные) + body (сам code).
+$queryParams = array_filter([
     'grant_type'    => 'authorization_code',
-    'code'          => $code,
-    'redirect_uri'  => $redirect,
     'client_id'     => $clientId,
-    'client_secret' => $clientSecret,
+    'redirect_uri'  => $redirect,
     'code_verifier' => $codeVerifier,
     'device_id'     => $deviceId,
-], fn($v) => $v !== null && $v !== ''));
+    'state'         => $state,
+], fn($v) => $v !== null && $v !== '');
+
+$tokenData = OAuthHelper::httpPostQueryAndBody(
+    'https://id.vk.com/oauth2/auth',
+    $queryParams,
+    ['code' => $code]
+);
 
 if (empty($tokenData['access_token'])) {
-    error_log('VK OAuth token exchange failed: ' . json_encode($tokenData));
+    error_log('VK OAuth token exchange failed: ' . json_encode($tokenData)
+        . ' verifier=' . ($codeVerifier ? 'set' : 'NULL')
+        . ' device_id=' . ($deviceId ?: 'NULL'));
     http_response_code(500);
     die('VK OAuth failed: ' . htmlspecialchars($tokenData['error_description'] ?? $tokenData['error'] ?? 'unknown'));
 }
@@ -55,10 +81,11 @@ if (empty($tokenData['access_token'])) {
 $accessToken = $tokenData['access_token'];
 
 // === Шаг 2: получение профиля пользователя ===
-// Новый endpoint (OAuth 2.1): id.vk.com/oauth2/user_info
-$profile = OAuthHelper::httpGet(
-    'https://id.vk.com/oauth2/user_info?access_token=' . urlencode($accessToken)
-        . '&client_id=' . urlencode($clientId)
+// SDK использует POST + access_token в body; но серверный код спокойно
+// работает и с GET. Используем POST как в SDK для единообразия.
+$profile = OAuthHelper::httpPost(
+    'https://id.vk.com/oauth2/user_info',
+    ['access_token' => $accessToken, 'client_id' => $clientId]
 );
 
 $vkUserId = '';
@@ -75,7 +102,7 @@ if (!empty($profile['user'])) {
     $last     = (string)($u['last_name'] ?? '');
     $avatar   = (string)($u['avatar'] ?? $u['photo_200'] ?? '');
 } else {
-    // Fallback на старый API VK, если /user_info не вернул данные
+    // Fallback на старый API VK
     $fallback = OAuthHelper::httpGet(
         'https://api.vk.com/method/users.get?fields=photo_200,first_name,last_name'
         . '&access_token=' . urlencode($accessToken) . '&v=5.131'

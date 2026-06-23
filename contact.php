@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Свяжитесь с Elsesser & Co. — продайте или оцените свою недвижимость в Екатеринбурге. Бесплатная консультация.">
+    <meta name="description" content="Свяжитесь с Elsesser & Co. — продайте или оцените свою недвижимость. Бесплатная консультация.">
     
     <title>Продать недвижимость | Elsesser & Co.</title>
 
@@ -124,7 +124,7 @@
                                 <i class="fas fa-map-marker-alt"></i>
                             </div>
                             <h3 class="feature-card__title">Глубокое знание районов</h3>
-                            <p class="feature-card__text">Эксперты по каждому району Екатеринбурга</p>
+                            <p class="feature-card__text">Эксперты по каждому району</p>
                         </div>
                         <div class="feature-card">
                             <div class="feature-card__icon">
@@ -190,7 +190,7 @@
                 <p class="section__subtitle" style="max-width: 800px;">
                     В Elsesser & Co. продажа вашей недвижимости — это больше, чем просто сделка. 
                     Это партнёрство, построенное на доверии, прозрачности и результатах. Наша миссия — 
-                    обеспечить самый плавный и выгодный опыт продажи на рынке недвижимости Екатеринбурга.
+                    обеспечить самый плавный и выгодный опыт продажи на рынке недвижимости.
                 </p>
             </div>
             
@@ -205,7 +205,7 @@
                 <div class="benefit-card">
                     <h3 class="benefit-card__title">Серьёзные покупатели</h3>
                     <p class="benefit-card__text">
-                        Доступ к одной из крупнейших сетей покупателей в Екатеринбурге, активно 
+                        Доступ к одной из крупнейших сетей покупателей, активно
                         ищущих недвижимость, похожую на вашу.
                     </p>
                 </div>

@@ -1,7 +1,7 @@
 <?php
 /**
- * Agent Dashboard - Elsesser & Co.
- * CRM панель агента
+ * Agent Panel - Elsesser & Co.
+ * Панель управления агента
  */
 
 require_once __DIR__ . '/../includes/config/database.php';
@@ -130,15 +130,15 @@ $pageTitle = 'CRM Агента';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= $pageTitle ?> | Elsesser & Co.</title>
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
+
     <!-- Styles -->
     <link rel="stylesheet" href="../css/reset.css">
     <link rel="stylesheet" href="../css/variables.css">
@@ -147,14 +147,14 @@ $pageTitle = 'CRM Агента';
 </head>
 <body class="admin-body">
     <?php include __DIR__ . '/includes/agent-header.php'; ?>
-    
+
     <div class="admin-container">
         <?php include __DIR__ . '/includes/agent-sidebar.php'; ?>
-        
+
         <main class="admin-main">
             <div class="admin-header">
                 <div>
-                    <h1 class="admin-title">Dashboard</h1>
+                    <h1 class="admin-title">Панель управления агента</h1>
                     <div class="admin-breadcrumb">
                         <i class="fas fa-briefcase"></i> Кабинет агента
                     </div>
@@ -163,7 +163,7 @@ $pageTitle = 'CRM Агента';
                     <i class="fas fa-plus"></i> Добавить объект
                 </a>
             </div>
-            
+
             <!-- Stats Grid -->
             <div class="stats-grid">
                 <div class="stat-card stat-card--primary">
@@ -178,7 +178,7 @@ $pageTitle = 'CRM Агента';
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card stat-card--success">
                     <div class="stat-card__icon">
                         <i class="fas fa-envelope"></i>
@@ -191,7 +191,7 @@ $pageTitle = 'CRM Агента';
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card stat-card--warning">
                     <div class="stat-card__icon">
                         <i class="fas fa-eye"></i>
@@ -204,7 +204,7 @@ $pageTitle = 'CRM Агента';
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="stat-card stat-card--info">
                     <div class="stat-card__icon">
                         <i class="fas fa-calendar-check"></i>
@@ -218,14 +218,14 @@ $pageTitle = 'CRM Агента';
                     </div>
                 </div>
             </div>
-            
+
             <!-- Main Grid -->
             <div class="admin-grid">
                 <!-- My Properties -->
                 <div class="admin-card">
                     <div class="admin-card__header">
                         <h2 class="admin-card__title">
-                            <i class="fas fa-building"></i> 
+                            <i class="fas fa-building"></i>
                             <?php if ($categoryFilter === 'sale'): ?>
                                 Продажа
                             <?php elseif ($categoryFilter === 'rent'): ?>
@@ -254,7 +254,7 @@ $pageTitle = 'CRM Агента';
                             <?php foreach ($myProperties as $property): ?>
                             <div class="property-item">
                                 <div class="property-item__image">
-                                    <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=100&q=80') ?>" 
+                                    <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=100&q=80') ?>"
                                          alt="<?= escape($property['title']) ?>">
                                 </div>
                                 <div class="property-item__content">
@@ -264,7 +264,7 @@ $pageTitle = 'CRM Агента';
                                         </a>
                                     </div>
                                     <div class="property-item__meta">
-                                        <?= formatPrice($property['price']) ?> • 
+                                        <?= formatPrice($property['price']) ?> •
                                         <?= $property['bedrooms'] ?> комн. •
                                         <?= number_format($property['area_total'] ?? $property['area_sqft']) ?> м²
                                         <?php if (!empty($property['district_name'])): ?>
@@ -296,7 +296,7 @@ $pageTitle = 'CRM Агента';
                         <?php endif; ?>
                     </div>
                 </div>
-                
+
                 <!-- Sidebar Content -->
                 <div class="dashboard-sidebar">
                     <!-- Recent Inquiries -->
@@ -329,7 +329,7 @@ $pageTitle = 'CRM Агента';
                             <?php endif; ?>
                         </div>
                     </div>
-                    
+
                     <!-- Upcoming Viewings -->
                     <div class="admin-card">
                         <div class="admin-card__header">

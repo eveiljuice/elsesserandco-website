@@ -691,7 +691,7 @@ $pageTitle = $isEdit ? 'Редактирование ЖК' : 'Новый ЖК';
                                 <div class="image-preview-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-2); margin-bottom: var(--space-4);">
                                     <?php foreach ($images as $img): ?>
                                     <div class="image-preview" style="position: relative; aspect-ratio: 4/3; border-radius: var(--radius-sm); overflow: hidden;">
-                                        <img src="<?= escape($img['image_url']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <img src="<?= imgSrc($img['image_url']) ?>" alt="" style="width: 100%; height: 100%; object-fit: cover;">
                                         <?php if ($img['is_primary']): ?>
                                         <span style="position: absolute; top: 4px; left: 4px; background: var(--color-accent); color: white; font-size: 10px; padding: 2px 6px; border-radius: var(--radius-sm);">Главное</span>
                                         <?php endif; ?>

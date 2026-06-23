@@ -69,16 +69,16 @@ $logoutMessage = isset($_GET['logout']);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Elsesser & Co. — ведущее агентство недвижимости в Екатеринбурге. Покупка, продажа и аренда элитной недвижимости.">
-    <meta name="keywords" content="недвижимость Екатеринбург, купить квартиру Екатеринбург, аренда дом Екатеринбург, элитная недвижимость">
-    
+    <meta name="description" content="Elsesser & Co. — ведущее агентство недвижимости. Покупка, продажа и аренда элитной недвижимости.">
+    <meta name="keywords" content="недвижимость, купить квартиру, аренда дома, элитная недвижимость">
+
     <!-- Open Graph -->
-    <meta property="og:title" content="Elsesser & Co. — Элитная недвижимость в Екатеринбурге">
-    <meta property="og:description" content="Профессиональное агентство недвижимости в Екатеринбурге. Помогаем найти идеальный дом.">
+    <meta property="og:title" content="Elsesser & Co. — Элитная недвижимость">
+    <meta property="og:description" content="Профессиональное агентство недвижимости. Помогаем найти идеальный дом.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="ru_RU">
-    
-    <title>Elsesser & Co. — Элитная недвижимость в Екатеринбурге</title>
+
+    <title>Elsesser & Co. — Элитная недвижимость</title>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/favicon.png">
@@ -158,7 +158,7 @@ $logoutMessage = isset($_GET['logout']);
                 к недвижимости
             </h1>
             <p class="hero__subtitle">
-                Elsesser & Co. — надёжное агентство недвижимости в Екатеринбурге. Мы делаем процесс покупки, 
+                Elsesser & Co. — надёжное агентство недвижимости. Мы делаем процесс покупки,
                 продажи и аренды простым и понятным. Качественный сервис, честные советы и помощь 
                 в поиске идеального дома.
             </p>
@@ -201,7 +201,7 @@ $logoutMessage = isset($_GET['logout']);
                 <article class="property-card" data-id="<?= $property['id'] ?>">
                     <div class="property-card__image">
                         <a href="property.php?id=<?= $property['id'] ?>">
-                            <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80') ?>" 
+                            <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80') ?>" 
                                  alt="<?= escape($property['title']) ?>" 
                                  class="property-card__img">
                         </a>
@@ -263,7 +263,7 @@ $logoutMessage = isset($_GET['logout']);
                     <h2 class="about-preview__title">Кто мы такие</h2>
                     <p class="about-preview__text">
                         Elsesser & Co. — это больше, чем просто агентство недвижимости. Мы — команда 
-                        профессионалов, стремящихся поднять стандарты услуг на рынке недвижимости Екатеринбурга.
+                        профессионалов, стремящихся поднять стандарты услуг на рынке недвижимости.
                     </p>
                     <p class="about-preview__text">
                         С момента основания мы быстро стали одним из самых надёжных агентств города, 
@@ -272,7 +272,7 @@ $logoutMessage = isset($_GET['logout']);
                     </p>
                     <p class="about-preview__text mb-0">
                         Мы специализируемся на покупке, продаже, аренде и управлении недвижимостью 
-                        по всему Екатеринбургу — от квартир и домов до коммерческих помещений и новостроек.
+                        по всей стране — от квартир и домов до коммерческих помещений и новостроек.
                     </p>
                     <div class="mt-8">
                         <a href="about.php" class="btn btn--secondary">Узнать больше</a>
@@ -287,7 +287,7 @@ $logoutMessage = isset($_GET['logout']);
         <div class="container">
             <div class="section__header">
                 <h2 class="section__title">Популярные районы</h2>
-                <p class="section__subtitle">Откройте для себя лучшие локации для жизни и инвестиций в Екатеринбурге</p>
+                <p class="section__subtitle">Откройте для себя лучшие локации для жизни и инвестиций</p>
             </div>
             
             <div class="communities-grid">

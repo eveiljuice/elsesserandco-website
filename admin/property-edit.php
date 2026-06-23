@@ -765,7 +765,7 @@ $pageTitle = $isEdit ? 'Редактирование объекта' : 'Новы
                                 <div class="image-preview-grid">
                                     <?php foreach ($images as $img): ?>
                                     <div class="image-preview">
-                                        <img src="<?= escape($img['image_url']) ?>" alt="">
+                                        <img src="<?= imgSrc($img['image_url']) ?>" alt="">
                                         <?php if ($img['is_primary']): ?>
                                         <span class="image-preview__badge">Главное</span>
                                         <?php endif; ?>

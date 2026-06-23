@@ -1,7 +1,7 @@
 <?php
 /**
- * Admin Dashboard - Elsesser & Co.
- * Панель администратора
+ * Admin Panel - Elsesser & Co.
+ * Панель управления администратора
  */
 
 require_once __DIR__ . '/../includes/config/database.php';
@@ -89,7 +89,7 @@ $pageTitle = 'Панель администратора';
         
         <main class="admin-main">
             <div class="admin-header">
-                <h1 class="admin-title">Dashboard</h1>
+                <h1 class="admin-title">Панель управления администратора</h1>
                 <div class="admin-breadcrumb">
                     <i class="fas fa-home"></i> Главная
                 </div>
@@ -218,7 +218,7 @@ $pageTitle = 'Панель администратора';
                             <?php foreach ($recentProperties as $property): ?>
                             <div class="property-item">
                                 <div class="property-item__image">
-                                    <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=100&q=80') ?>" 
+                                    <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=100&q=80') ?>" 
                                          alt="<?= escape($property['title']) ?>">
                                 </div>
                                 <div class="property-item__content">

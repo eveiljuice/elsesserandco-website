@@ -6,9 +6,22 @@
 require_once __DIR__ . '/../../includes/config/database.php';
 require_once __DIR__ . '/../../includes/auth/oauth_helper.php';
 
-$code  = trim($_GET['code']  ?? '');
-$state = trim($_GET['state'] ?? '');
-$saved = OAuthHelper::consumeState('yandex', $state);
+$code      = trim($_GET['code']      ?? '');
+$state     = trim($_GET['state']     ?? '');
+$error     = trim($_GET['error']     ?? '');
+$errorDesc = trim($_GET['error_description'] ?? '');
+$saved     = OAuthHelper::consumeState('yandex', $state);
+
+// Провайдер вернул ошибку до выдачи кода (например, не подтверждённые доступы)
+if ($error !== '') {
+    http_response_code(400);
+    if ($error === 'invalid_scope') {
+        die('Яндекс: у приложения не подключены нужные доступы (email / info / avatar). '
+            . 'Зайдите в https://oauth.yandex.ru/ → "Мои приложения" → "' . htmlspecialchars(Config::get('YANDEX_CLIENT_ID')) . '" '
+            . '→ включите галки "Доступ к email", "Доступ к информации о пользователе", "Доступ к аватару".');
+    }
+    die('Яндекс OAuth: ' . htmlspecialchars($errorDesc ?: $error));
+}
 
 if ($code === '' || !$saved) {
     http_response_code(400);

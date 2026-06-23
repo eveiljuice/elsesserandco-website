@@ -29,7 +29,7 @@ if (empty($properties)): ?>
 <article class="property-card">
     <div class="property-card__image">
         <a href="<?= escape($propUrl) ?>">
-            <img src="<?= escape($property['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>"
+            <img src="<?= imgSrc($property['primary_image']?? 'https://via.placeholder.com/600x400') ?>"
                  alt="<?= escape($roomsText) ?>" class="property-card__img" loading="lazy">
         </a>
         <?php if ($property['featured']): ?><span class="property-card__badge">Рекомендуем</span><?php endif; ?>

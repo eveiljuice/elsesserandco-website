@@ -156,7 +156,7 @@ $compareFields = [
                             <th class="compare-table__property">
                                 <div class="compare-property">
                                     <div class="compare-property__image">
-                                        <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80') ?>" 
+                                        <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80') ?>" 
                                              alt="<?= escape($property['title']) ?>">
                                     </div>
                                     <h3 class="compare-property__title">

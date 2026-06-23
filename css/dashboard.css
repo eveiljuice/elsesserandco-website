@@ -790,3 +790,73 @@ a.inquiry-item__title:hover {
         width: 100%;
     }
 }
+
+/* Компактная раскрывающаяся подсказка про PWA / push.
+   Заменяет старую крупную .dashboard-pwa карточку с кнопками. */
+.dashboard-hint {
+    margin-bottom: var(--space-6);
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    font-size: var(--text-sm);
+}
+
+.dashboard-hint__summary {
+    list-style: none;
+    cursor: pointer;
+    padding: var(--space-3) var(--space-4);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text-light);
+    user-select: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+    position: relative;
+}
+
+.dashboard-hint__summary::-webkit-details-marker { display: none; }
+
+.dashboard-hint__summary::after {
+    content: '\f078'; /* fa-chevron-down */
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    margin-left: auto;
+    font-size: var(--text-xs);
+    transition: transform var(--transition-fast);
+    color: var(--color-text-lighter);
+}
+
+.dashboard-hint[open] .dashboard-hint__summary::after {
+    transform: rotate(-180deg);
+}
+
+.dashboard-hint__summary:hover {
+    background-color: var(--color-light-gray);
+    color: var(--color-text);
+}
+
+.dashboard-hint__summary i {
+    color: var(--color-accent);
+    font-size: var(--text-base);
+    width: 16px;
+    text-align: center;
+}
+
+.dashboard-hint__body {
+    padding: 0 var(--space-4) var(--space-4) calc(var(--space-4) + 16px + var(--space-3));
+    color: var(--color-text-light);
+    line-height: 1.55;
+}
+
+.dashboard-hint__body p {
+    margin: 0 0 var(--space-2);
+}
+
+.dashboard-hint__body p:last-child { margin-bottom: 0; }
+
+.dashboard-hint__sub {
+    color: var(--color-text-lighter);
+    font-size: var(--text-xs);
+}

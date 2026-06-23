@@ -217,7 +217,7 @@ $pageTitle = 'Новостройки';
                 <?php foreach ($buildings as $b): ?>
                 <div class="building-card">
                     <div class="building-card__image">
-                        <img src="<?= escape($b['primary_image'] ?? 'https://via.placeholder.com/400x250') ?>" alt="<?= escape($b['name']) ?>">
+                        <img src="<?= imgSrc($b['primary_image']?? 'https://via.placeholder.com/400x250') ?>" alt="<?= escape($b['name']) ?>">
                         <?php if ($b['featured']): ?>
                         <span class="building-card__badge">⭐ Рекомендуем</span>
                         <?php endif; ?>

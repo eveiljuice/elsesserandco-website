@@ -71,7 +71,9 @@ try {
             'created_at' => $msg['created_at'],
             'sender_name' => $msg['sender_first_name'] . ' ' . $msg['sender_last_name'],
             'sender_avatar' => $msg['sender_avatar'] ?? null,
-            'is_mine' => $msg['sender_id'] == $userId
+            'is_mine' => $msg['sender_id'] == $userId,
+            'is_system' => (bool)($msg['is_system'] ?? 0),
+            'metadata'  => $msg['metadata'] ?? null,
         ];
     }
     

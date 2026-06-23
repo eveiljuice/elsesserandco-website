@@ -53,6 +53,10 @@ if (!$saved) {
 }
 
 $codeVerifier = OAuthHelper::consumeCodeVerifier('vk');
+// OneTap SDK v3: verifier может лежать в JS-куке 'vkid_sdk:codeVerifier'
+if ($codeVerifier === null && isset($_COOKIE['vkid_sdk:codeVerifier'])) {
+    $codeVerifier = (string)$_COOKIE['vkid_sdk:codeVerifier'];
+}
 
 $clientId     = Config::get('VK_CLIENT_ID');
 $clientSecret = Config::get('VK_CLIENT_SECRET');
@@ -64,16 +68,22 @@ if (!$clientId || !$clientSecret) {
     exit;
 }
 
-// Обмен code → access_token
-$tokenData = OAuthHelper::httpPost('https://id.vk.com/oauth2/auth', array_filter([
+// Обмен code → access_token.
+// Если PKCE-verifier отсутствует (OneTap SDK v3 type=code_v2) — пробуем без него.
+$tokenPayload = [
     'grant_type'    => 'authorization_code',
     'code'          => $code,
     'redirect_uri'  => $redirect,
     'client_id'     => $clientId,
     'client_secret' => $clientSecret,
-    'code_verifier' => $codeVerifier,
-    'device_id'     => $deviceId,
-], fn($v) => $v !== null && $v !== ''));
+];
+if ($codeVerifier !== null) {
+    $tokenPayload['code_verifier'] = $codeVerifier;
+}
+if ($deviceId !== '') {
+    $tokenPayload['device_id'] = $deviceId;
+}
+$tokenData = OAuthHelper::httpPost('https://id.vk.com/oauth2/auth', $tokenPayload);
 
 if (empty($tokenData['access_token'])) {
     error_log('VK exchange failed: ' . json_encode($tokenData));

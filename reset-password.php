@@ -1,33 +1,99 @@
 <?php
 /**
- * Reset Password — установка нового пароля по токену.
+ * Reset Password — установка нового пароля.
+ *
+ * Пользователь попадает сюда после одобрения заявки админом
+ * (на /forgot-password.php). Авторизация — через сессию
+ * (password_reset_user_id + password_reset_request_id).
+ *
+ * После успешной смены пароля:
+ *  - заявка получает status='used', used_at=NOW()
+ *  - сессионные флаги сбрасываются
+ *  - все активные сессии пользователя остаются (пароль меняется, токены сессий — нет)
  */
 
 require_once __DIR__ . '/includes/config/database.php';
 require_once __DIR__ . '/includes/auth/check_auth.php';
-require_once __DIR__ . '/includes/auth/password_reset.php';
 
-$token = trim($_GET['token'] ?? $_POST['token'] ?? '');
+if (isLoggedIn()) {
+    header('Location: /dashboard.php');
+    exit;
+}
+
+if (empty($_SESSION['password_reset_user_id']) || empty($_SESSION['password_reset_request_id'])) {
+    // Нет одобренной заявки в сессии — отправляем на forgot
+    header('Location: /forgot-password.php');
+    exit;
+}
+
+$pdo = getDBConnection();
+$userId  = (int)$_SESSION['password_reset_user_id'];
+$reqId   = (int)$_SESSION['password_reset_request_id'];
+
+// Проверяем, что заявка всё ещё approved и не использована
+$stmt = $pdo->prepare("
+    SELECT r.*, u.email, u.first_name
+    FROM password_reset_requests r
+    JOIN users u ON u.id = r.user_id
+    WHERE r.id = ? AND r.user_id = ? AND r.status = 'approved'
+    LIMIT 1
+");
+$stmt->execute([$reqId, $userId]);
+$request = $stmt->fetch();
+
+if (!$request) {
+    // Заявка уже использована, отклонена, или удалена
+    unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_request_id']);
+    header('Location: /forgot-password.php');
+    exit;
+}
+
 $errors = [];
 $done = false;
-$tokenValid = $token !== '' && verifyPasswordResetToken($token) !== null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
         $errors[] = 'Ошибка безопасности. Обновите страницу.';
-    } elseif (!$tokenValid) {
-        $errors[] = 'Ссылка недействительна или истекла';
     } else {
-        $pwd = $_POST['password'] ?? '';
+        $pwd     = $_POST['password'] ?? '';
         $confirm = $_POST['password_confirm'] ?? '';
-        if ($pwd !== $confirm) {
+
+        if (empty($pwd)) {
+            $errors[] = 'Введите новый пароль';
+        } elseif (strlen($pwd) < 8) {
+            $errors[] = 'Пароль должен содержать минимум 8 символов';
+        } elseif (!preg_match('/[A-Za-z]/', $pwd) || !preg_match('/[0-9]/', $pwd)) {
+            $errors[] = 'Пароль должен содержать буквы и цифры';
+        } elseif ($pwd !== $confirm) {
             $errors[] = 'Пароли не совпадают';
         } else {
-            $res = applyPasswordReset($token, $pwd);
-            if ($res['ok']) {
+            try {
+                $pdo->beginTransaction();
+
+                // Обновляем пароль
+                $hash = password_hash($pwd, PASSWORD_BCRYPT, ['cost' => 12]);
+                $pdo->prepare("UPDATE users SET password_hash = ? WHERE id = ?")
+                    ->execute([$hash, $userId]);
+
+                // Помечаем заявку использованной
+                $pdo->prepare("
+                    UPDATE password_reset_requests
+                    SET status = 'used', used_at = NOW()
+                    WHERE id = ? AND status = 'approved'
+                ")->execute([$reqId]);
+
+                $pdo->commit();
+
+                // Сбрасываем сессионные флаги
+                unset($_SESSION['password_reset_user_id'], $_SESSION['password_reset_request_id']);
+
                 $done = true;
-            } else {
-                $errors[] = $res['error'];
+            } catch (PDOException $e) {
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
+                error_log('reset password error: ' . $e->getMessage());
+                $errors[] = 'Не удалось обновить пароль. Попробуйте позже.';
             }
         }
     }
@@ -71,37 +137,49 @@ $csrf = generateCSRFToken();
 
                         <?php if ($done): ?>
                             <div class="alert alert--success">
-                                <i class="fas fa-check-circle"></i> Пароль обновлён. Можете войти с новым паролем.
+                                <i class="fas fa-check-circle"></i>
+                                Пароль обновлён. Можете войти с новым паролем.
                             </div>
-                            <p class="auth-footer"><a href="login.php" class="btn btn--primary btn--lg btn--full">Войти</a></p>
-                        <?php elseif (!$tokenValid): ?>
-                            <div class="alert alert--error">
-                                <i class="fas fa-exclamation-circle"></i>
-                                Ссылка недействительна или истекла. Запросите новую.
-                            </div>
-                            <p class="auth-footer"><a href="forgot-password.php">Запросить новую ссылку</a></p>
+                            <p class="auth-footer">
+                                <a href="login.php" class="btn btn--primary btn--lg btn--full">
+                                    <i class="fas fa-sign-in-alt"></i> Войти
+                                </a>
+                            </p>
                         <?php else: ?>
+                            <p class="auth-form__subtitle">
+                                Заявка для <code><?= escape($request['email']) ?></code> одобрена. Задайте новый пароль.
+                            </p>
+
                             <?php if ($errors): ?>
                                 <div class="alert alert--error">
                                     <i class="fas fa-exclamation-circle"></i>
                                     <ul><?php foreach ($errors as $e): ?><li><?= escape($e) ?></li><?php endforeach; ?></ul>
                                 </div>
                             <?php endif; ?>
-                            <form method="POST" action="reset-password.php" class="form">
+
+                            <form method="POST" action="reset-password.php" class="form" autocomplete="off">
                                 <input type="hidden" name="csrf_token" value="<?= escape($csrf) ?>">
-                                <input type="hidden" name="token" value="<?= escape($token) ?>">
                                 <div class="form-group">
                                     <label class="form-label" for="password">Новый пароль</label>
                                     <div class="form-input-wrapper">
                                         <i class="fas fa-lock"></i>
-                                        <input type="password" id="password" name="password" class="form-input" minlength="8" required autofocus>
+                                        <input type="password" id="password" name="password" class="form-input"
+                                               minlength="8" required autofocus autocomplete="new-password"
+                                               placeholder="Минимум 8 символов, буквы и цифры">
+                                        <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label class="form-label" for="password_confirm">Повторите пароль</label>
                                     <div class="form-input-wrapper">
                                         <i class="fas fa-lock"></i>
-                                        <input type="password" id="password_confirm" name="password_confirm" class="form-input" minlength="8" required>
+                                        <input type="password" id="password_confirm" name="password_confirm" class="form-input"
+                                               minlength="8" required autocomplete="new-password">
+                                        <button type="button" class="password-toggle" onclick="togglePassword('password_confirm')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
                                     </div>
                                 </div>
                                 <button type="submit" class="btn btn--primary btn--lg btn--full">
@@ -120,6 +198,23 @@ $csrf = generateCSRFToken();
             </div>
         </div>
     </section>
+
+    <script>
+    function togglePassword(id) {
+        var input = document.getElementById(id);
+        var btn = input.parentElement.querySelector('.password-toggle i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.classList.remove('fa-eye');
+            btn.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            btn.classList.remove('fa-eye-slash');
+            btn.classList.add('fa-eye');
+        }
+    }
+    </script>
+
     <?php include __DIR__ . '/includes/cookie-banner.php'; ?>
 </body>
 </html>

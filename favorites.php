@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Favorites Page - Elsesser & Co.
  * Страница избранного пользователя
@@ -124,7 +124,7 @@ $favoritesCount = count($favorites);
                 <article class="property-card property-card--compact" data-id="<?= $property['id'] ?>" data-property-id="<?= $property['id'] ?>">
                     <div class="property-card__image">
                         <a href="property.php?id=<?= $property['id'] ?>">
-                            <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80') ?>" 
+                            <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80') ?>" 
                                  alt="<?= escape($property['title']) ?>" 
                                  class="property-card__img"
                                  loading="lazy">

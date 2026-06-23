@@ -37,12 +37,13 @@ while (ob_get_level()) {
 }
 
 $pdo = getDBConnection();
-$deadline = time() + 25;
+$deadline = time() + 10;     // 10 секунд — не держим FPM-воркер слишком долго
 $currentLast = $lastId;
 
 while (time() < $deadline && !connection_aborted()) {
     $stmt = $pdo->prepare("
         SELECT m.id, m.sender_id, m.message, m.created_at, m.is_read,
+               m.is_system, m.metadata,
                u.first_name AS sender_first_name,
                u.avatar AS sender_avatar
         FROM messages m
@@ -65,7 +66,7 @@ while (time() < $deadline && !connection_aborted()) {
 
     echo ": ping\n\n";
     flush();
-    usleep(500000);
+    usleep(1500000);   // 1.5 сек между пингами
 }
 
 echo "event: done\ndata: {}\n\n";

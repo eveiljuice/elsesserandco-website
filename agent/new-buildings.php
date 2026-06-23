@@ -254,7 +254,7 @@ $pageTitle = 'Мои новостройки';
                             <tr>
                                 <td>
                                     <div class="table-image">
-                                        <img src="<?= escape($building['primary_image'] ?? 'https://via.placeholder.com/60x40?text=ЖК') ?>" 
+                                        <img src="<?= imgSrc($building['primary_image']?? 'https://via.placeholder.com/60x40?text=ЖК') ?>" 
                                              alt="<?= escape($building['name']) ?>">
                                     </div>
                                 </td>

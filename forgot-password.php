@@ -1,15 +1,31 @@
 <?php
 /**
- * Forgot Password — запрос ссылки на сброс пароля.
+ * Forgot Password — запрос на сброс пароля (одобряет админ вручную).
+ *
+ * Поток:
+ *  - Пользователь вводит email.
+ *  - Если у него есть одобренная заявка (status=approved) и не использована
+ *    (status!=used) — пропускаем на /reset-password.php (там вводит новый пароль).
+ *  - Если есть pending — показываем «ожидайте одобрения».
+ *  - Иначе — создаём новую заявку (status=pending).
+ *  - Email НЕ отправляется.
  */
 
 require_once __DIR__ . '/includes/config/database.php';
 require_once __DIR__ . '/includes/auth/check_auth.php';
-require_once __DIR__ . '/includes/auth/password_reset.php';
+
+// Если пользователь уже залогинен — отправляем в ЛК (смена пароля там)
+if (isLoggedIn()) {
+    header('Location: /dashboard.php');
+    exit;
+}
+
+$pdo = getDBConnection();
 
 $errors = [];
-$sent = false;
-$devResetUrl = '';
+$view   = 'form'; // 'form' | 'pending' | 'approved' | 'rejected' | 'unknown'
+$formEmail = '';
+$existingRequest = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!validateCSRFToken($_POST['csrf_token'] ?? '')) {
@@ -19,11 +35,68 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = 'Введите корректный email';
         } else {
-            $result = requestPasswordReset($email);
-            $sent = true;
-            if (!Config::isProd()) {
-                $devResetUrl = $_SESSION['last_password_reset_url'] ?? '';
+            // Ищем пользователя
+            $stmt = $pdo->prepare("SELECT id, email, is_active FROM users WHERE email = ?");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if (!$user || !$user['is_active']) {
+                // Не раскрываем, существует ли email. Но для UX показываем "ожидайте"
+                $view = 'unknown';
+            } else {
+                $formEmail = $email;
+
+                // Проверяем существующую активную заявку
+                $stmt = $pdo->prepare("
+                    SELECT * FROM password_reset_requests
+                    WHERE user_id = ?
+                      AND status IN ('pending','approved')
+                    ORDER BY created_at DESC LIMIT 1
+                ");
+                $stmt->execute([$user['id']]);
+                $existingRequest = $stmt->fetch();
+
+                if ($existingRequest) {
+                    if ($existingRequest['status'] === 'approved') {
+                        $view = 'approved';
+                        // Помечаем в сессии, что пользователь — одобренный владелец заявки.
+                        // Это «слабый» токен — привязан к сессии, к IP, действует пока
+                        // пользователь не нажмёт submit или не выйдет.
+                        $_SESSION['password_reset_user_id'] = (int)$user['id'];
+                        $_SESSION['password_reset_request_id'] = (int)$existingRequest['id'];
+                    } else {
+                        $view = 'pending';
+                    }
+                } else {
+                    // Создаём заявку
+                    try {
+                        $stmt = $pdo->prepare("
+                            INSERT INTO password_reset_requests (user_id, email, status)
+                            VALUES (?, ?, 'pending')
+                        ");
+                        $stmt->execute([$user['id'], $email]);
+                        $view = 'pending';
+                    } catch (PDOException $e) {
+                        // Уникальный ключ uniq_user_pending мог сработать, если заявка уже есть
+                        $view = 'pending';
+                    }
+                }
             }
+        }
+    }
+} else {
+    // GET: если в сессии уже есть одобренный сброс — показать форму
+    if (!empty($_SESSION['password_reset_user_id']) && !empty($_SESSION['password_reset_request_id'])) {
+        $stmt = $pdo->prepare("
+            SELECT * FROM password_reset_requests
+            WHERE id = ? AND user_id = ? AND status = 'approved'
+            LIMIT 1
+        ");
+        $stmt->execute([$_SESSION['password_reset_request_id'], $_SESSION['password_reset_user_id']]);
+        $existingRequest = $stmt->fetch();
+        if ($existingRequest) {
+            $view = 'approved';
+            $formEmail = $existingRequest['email'];
         }
     }
 }
@@ -65,7 +138,6 @@ $csrf = generateCSRFToken();
                 <div class="auth-form-wrapper">
                     <div class="auth-form">
                         <h1 class="auth-form__title">Восстановление пароля</h1>
-                        <p class="auth-form__subtitle">Укажите email — пришлём ссылку для смены пароля</p>
 
                         <?php if (!empty($errors)): ?>
                         <div class="alert alert--error">
@@ -74,44 +146,108 @@ $csrf = generateCSRFToken();
                         </div>
                         <?php endif; ?>
 
-                        <?php if ($sent): ?>
-                        <div class="alert alert--success">
-                            <i class="fas fa-check-circle"></i>
-                            Если такой email зарегистрирован — мы отправили на него письмо со ссылкой.
-                            Ссылка действует 1 час.
-                        </div>
-                        <?php if ($devResetUrl): ?>
-                        <div class="alert alert--info">
-                            <i class="fas fa-code"></i>
-                            <div>
-                                Dev-режим: письмо записано в <code>logs/mail.log</code>.<br>
-                                <a href="<?= escape($devResetUrl) ?>">Открыть ссылку сброса пароля</a>
-                            </div>
-                        </div>
-                        <?php endif; ?>
-                        <p class="auth-footer"><a href="login.php">← Вернуться ко входу</a></p>
-                        <?php else: ?>
-                        <form method="POST" action="forgot-password.php" class="form">
-                            <input type="hidden" name="csrf_token" value="<?= escape($csrf) ?>">
-                            <div class="form-group">
-                                <label for="email" class="form-label">Email</label>
-                                <div class="form-input-wrapper">
-                                    <i class="fas fa-envelope"></i>
-                                    <input type="email" id="email" name="email" class="form-input" required autofocus placeholder="your@email.com">
+                        <?php if ($view === 'pending'): ?>
+                            <div class="alert alert--info">
+                                <i class="fas fa-hourglass-half"></i>
+                                <div>
+                                    <strong>Заявка отправлена администратору</strong>
+                                    <p style="margin: 6px 0 0;">Мы получили ваш запрос на сброс пароля для <code><?= escape($formEmail) ?></code>. После одобрения администратором вы сможете задать новый пароль — просто вернитесь на эту страницу и введите тот же email.</p>
                                 </div>
                             </div>
-                            <button type="submit" class="btn btn--primary btn--lg btn--full">
-                                <i class="fas fa-paper-plane"></i> Отправить ссылку
-                            </button>
-                        </form>
-                        <p class="auth-footer"><a href="login.php">Вспомнили пароль? Войти</a></p>
+                            <form method="POST" action="forgot-password.php" class="form" style="margin-top: 16px;">
+                                <input type="hidden" name="csrf_token" value="<?= escape($csrf) ?>">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Проверить статус заявки</label>
+                                    <div class="form-input-wrapper">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" class="form-input" required
+                                               value="<?= escape($formEmail) ?>" placeholder="your@email.com">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn--secondary btn--lg btn--full">
+                                    <i class="fas fa-rotate"></i> Проверить
+                                </button>
+                            </form>
+                            <p class="auth-footer">
+                                Одобрение обычно занимает от нескольких минут до 1 рабочего дня.<br>
+                                <a href="login.php">Вспомнили пароль? Войти</a>
+                            </p>
+
+                        <?php elseif ($view === 'approved'): ?>
+                            <div class="alert alert--success">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <strong>Заявка одобрена!</strong>
+                                    <p style="margin: 6px 0 0;">Администратор одобрил сброс пароля для <code><?= escape($formEmail) ?></code>. Задайте новый пароль — ссылка одноразовая.</p>
+                                </div>
+                            </div>
+                            <p class="auth-footer" style="margin-top: 16px;">
+                                <a href="reset-password.php" class="btn btn--primary btn--lg btn--full">
+                                    <i class="fas fa-key"></i> Задать новый пароль
+                                </a>
+                            </p>
+
+                        <?php elseif ($view === 'rejected'): ?>
+                            <div class="alert alert--error">
+                                <i class="fas fa-ban"></i>
+                                <div>
+                                    <strong>Заявка отклонена</strong>
+                                    <?php if (!empty($existingRequest['rejection_reason'])): ?>
+                                    <p style="margin: 6px 0 0;">Причина: <?= escape($existingRequest['rejection_reason'], ENT_QUOTES, 'UTF-8') ?></p>
+                                    <?php endif; ?>
+                                    <p style="margin: 6px 0 0;">Вы можете подать заявку повторно.</p>
+                                </div>
+                            </div>
+                            <form method="POST" action="forgot-password.php" class="form" style="margin-top: 16px;">
+                                <input type="hidden" name="csrf_token" value="<?= escape($csrf) ?>">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email</label>
+                                    <div class="form-input-wrapper">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" class="form-input" required
+                                               value="<?= escape($formEmail) ?>" placeholder="your@email.com">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn--primary btn--lg btn--full">
+                                    <i class="fas fa-paper-plane"></i> Подать новую заявку
+                                </button>
+                            </form>
+
+                        <?php elseif ($view === 'unknown'): ?>
+                            <div class="alert alert--info">
+                                <i class="fas fa-hourglass-half"></i>
+                                <div>
+                                    <strong>Заявка отправлена</strong>
+                                    <p style="margin: 6px 0 0;">Если такой email зарегистрирован, заявка на сброс пароля отправлена администратору. Вернитесь сюда позже, чтобы проверить статус.</p>
+                                </div>
+                            </div>
+
+                        <?php else: ?>
+                            <p class="auth-form__subtitle">Укажите email — администратор рассмотрит заявку и разрешит смену пароля</p>
+                            <form method="POST" action="forgot-password.php" class="form">
+                                <input type="hidden" name="csrf_token" value="<?= escape($csrf) ?>">
+                                <div class="form-group">
+                                    <label for="email" class="form-label">Email</label>
+                                    <div class="form-input-wrapper">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" class="form-input" required autofocus
+                                               placeholder="your@email.com" value="<?= escape($formEmail) ?>">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn--primary btn--lg btn--full">
+                                    <i class="fas fa-paper-plane"></i> Подать заявку
+                                </button>
+                            </form>
+                            <p class="auth-footer">
+                                <a href="login.php">Вспомнили пароль? Войти</a>
+                            </p>
                         <?php endif; ?>
                     </div>
                 </div>
                 <div class="auth-image" style="background-image:url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80');">
                     <div class="auth-image__content">
-                        <h2>Безопасный сброс пароля</h2>
-                        <p>Ссылка одноразовая и действует час — даже если письмо перехватят, навредить не получится.</p>
+                        <h2>Сброс пароля</h2>
+                        <p>Администратор рассмотрит заявку и разрешит смену пароля. Обычно это занимает несколько минут в рабочее время.</p>
                     </div>
                 </div>
             </div>

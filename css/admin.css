@@ -871,3 +871,231 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ============================================
+   AGENT APPLICATIONS (/admin/agent-applications.php)
+   ============================================ */
+.application-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.application-card {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    background: var(--color-white);
+    transition: border-color 200ms;
+}
+
+.application-card:hover {
+    border-color: var(--color-text-light);
+}
+
+.application-card--pending { border-left: 4px solid #f59e0b; }
+.application-card--reviewing { border-left: 4px solid #3b82f6; }
+.application-card--approved { border-left: 4px solid #16a34a; background: #f0fdf4; }
+.application-card--rejected { border-left: 4px solid #dc2626; background: #fef2f2; }
+
+.application-card__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.application-card__name {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: var(--color-navy);
+    font-weight: 600;
+}
+
+.application-card__contact {
+    font-size: 13px;
+    color: var(--color-text-light);
+}
+
+.application-card__contact a {
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.application-card__contact a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+.application-card__status {
+    flex-shrink: 0;
+}
+
+.application-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--color-text-light);
+    padding: 8px 0;
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 12px;
+}
+
+.application-card__meta i {
+    color: var(--color-accent);
+    margin-right: 4px;
+    width: 14px;
+}
+
+.application-card__section {
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.application-card__section strong {
+    color: var(--color-navy);
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.application-card__section p {
+    margin: 0;
+    color: var(--color-text);
+}
+
+.application-card__section--reject {
+    background: rgba(220, 38, 38, 0.06);
+    border-left: 3px solid #dc2626;
+    padding: 10px 14px;
+    border-radius: 4px;
+}
+
+.application-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+.application-card__actions form {
+    margin: 0;
+}
+
+/* ============================================
+   Calendar events (agent/calendar.php)
+   ============================================ */
+.calendar-day {
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 100px;
+}
+
+.calendar-day__date {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-light);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.calendar-day__empty {
+    color: var(--color-text-lighter);
+    font-size: 12px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.calendar-event {
+    background: var(--color-light-gray);
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 13px;
+    border-left: 3px solid var(--color-text-light);
+}
+
+.calendar-event--scheduled { border-left-color: #3b82f6; background: #eff6ff; }
+.calendar-event--completed { border-left-color: #16a34a; background: #f0fdf4; }
+.calendar-event--cancelled { border-left-color: #dc2626; background: #fef2f2; opacity: 0.6; }
+.calendar-event--no-show { border-left-color: #f59e0b; background: #fffbeb; }
+
+.calendar-event--from-chat {
+    background: linear-gradient(90deg, #eef2ff 0%, #eff6ff 100%);
+    border-left: 3px solid #4f46e5;
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.08);
+}
+
+.calendar-event__time {
+    font-weight: 600;
+    color: var(--color-navy);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendar-event__badge {
+    color: #4f46e5;
+    font-size: 11px;
+    background: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    line-height: 1;
+}
+
+.calendar-event__client {
+    color: var(--color-text);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendar-event__phone {
+    color: var(--color-text-light);
+    text-decoration: none;
+    transition: color 150ms;
+}
+
+.calendar-event__phone:hover { color: #16a34a; }
+
+.calendar-event__property {
+    color: var(--color-text-light);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.calendar-event__chat-link {
+    display: inline-block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #4f46e5;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.calendar-event__chat-link:hover { text-decoration: underline; }
+
+.calendar-event__actions {
+    margin-top: 6px;
+}
+
+.calendar-event__select {
+    font-size: 12px;
+    padding: 4px 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: white;
+    color: var(--color-text);
+    cursor: pointer;
+}

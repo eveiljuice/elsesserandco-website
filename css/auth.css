@@ -412,34 +412,85 @@
 }
 
 /* ============================================
-   OAuth buttons (VK / Yandex / Google / Telegram)
+   OAuth buttons (VK / Yandex / Google)
+   Стилизованные brand-кнопки с inline-SVG иконками.
+   Цвета берутся из CSS-переменных --oa-bg / --oa-fg
+   (Google также --oa-border), которые выставляются
+   inline-стилем из PHP для каждого провайдера.
    ============================================ */
 .oauth-buttons {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
     gap: var(--space-3);
     margin-top: var(--space-4);
 }
 
 .oauth-btn {
+    --oa-bg: #1f1f1f;
+    --oa-fg: #ffffff;
+    --oa-border: transparent;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
-    padding: 12px 16px;
+    padding: 12px 18px;
     border-radius: var(--radius-md);
-    font-weight: var(--font-medium);
+    border: 1.5px solid var(--oa-border);
+    background-color: var(--oa-bg);
+    color: var(--oa-fg);
+    font-weight: var(--font-semibold);
     font-size: var(--text-sm);
-    color: #fff;
+    letter-spacing: 0.01em;
     text-decoration: none;
-    transition: filter var(--transition-fast), transform var(--transition-fast);
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+        filter var(--transition-fast),
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
-.oauth-btn:hover { filter: brightness(1.05); transform: translateY(-1px); }
-.oauth-btn i { font-size: 18px; }
+.oauth-btn:hover {
+    filter: brightness(0.96) saturate(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+    color: var(--oa-fg);
+}
+.oauth-btn:active { transform: translateY(0); filter: brightness(0.92); }
+.oauth-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(194, 157, 102, 0.30), 0 1px 2px rgba(15, 23, 42, 0.06);
+}
 
-.oauth-btn--vk     { background: #0077FF; }
-.oauth-btn--yandex { background: #FC3F1D; }
-.oauth-btn--google { background: #1f1f1f; }
+/* Контейнер под inline-SVG (одинаковый размер для всех провайдеров) */
+.oauth-btn__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+.oauth-btn__icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Disabled (провайдер не настроен в .env) — не активная, но видимая плашка */
+.oauth-btn--disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+    filter: grayscale(0.4);
+    box-shadow: none;
+}
+.oauth-btn--disabled:hover {
+    transform: none;
+    filter: grayscale(0.4) brightness(1);
+    box-shadow: none;
+}
 
 .oauth-telegram {
     margin-top: var(--space-4);
@@ -470,3 +521,179 @@
 }
 
 .vk-onetap-fallback:hover { filter: brightness(1.08); color: #fff; }
+
+/* ============================================
+   Унифицированные элементы форм (apply.php,
+   register-agency.php и т.п.)
+   ============================================ */
+.form-label__required {
+    color: #dc2626;
+    margin-left: 2px;
+}
+
+.form-hint {
+    color: var(--color-text-light);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+}
+
+/* Textarea (без иконки слева) */
+.form-input--textarea {
+    min-height: 90px;
+    padding: var(--space-3) var(--space-4);
+    font-family: inherit;
+    line-height: 1.5;
+    resize: vertical;
+}
+
+.form-input--textarea:focus {
+    box-shadow: 0 0 0 3px rgba(194, 157, 102, 0.15);
+}
+
+/* Checkbox grid (специализация) */
+.form-checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    line-height: 1.3;
+}
+
+.checkbox-label:hover {
+    border-color: var(--color-text-light);
+    background-color: var(--color-light-gray);
+}
+
+.checkbox {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    accent-color: var(--color-accent);
+    cursor: pointer;
+}
+
+.checkbox-text {
+    flex: 1;
+}
+
+.checkbox-label a {
+    color: var(--color-accent);
+    text-decoration: underline;
+}
+
+/* File upload */
+.form-file-wrapper {
+    position: relative;
+    border: 2px dashed var(--color-border);
+    border-radius: var(--radius-md);
+    background-color: var(--color-light-gray);
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+}
+
+.form-file-wrapper:hover,
+.form-file-wrapper.is-drag {
+    border-color: var(--color-accent);
+    background-color: #fdf8f0;
+}
+
+.form-file-wrapper.is-drag {
+    border-style: solid;
+}
+
+.form-file-wrapper.has-file {
+    border-style: solid;
+    border-color: var(--color-text-light);
+    background-color: var(--color-white);
+    padding: 16px 20px;
+}
+
+.form-input--file {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+    margin: 0;
+    padding: 0;
+}
+
+.form-file-hint {
+    color: var(--color-text-light);
+    font-size: var(--text-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.form-file-hint i {
+    font-size: 24px;
+    color: var(--color-text-lighter);
+}
+
+.form-file-info {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    z-index: 0;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+}
+
+.form-file-info i {
+    color: var(--color-accent);
+    font-size: 18px;
+}
+
+.form-file-info #resumeFileName {
+    font-weight: var(--font-medium);
+    word-break: break-all;
+    flex: 1;
+}
+
+.form-file-size {
+    color: var(--color-text-light);
+    font-size: var(--text-xs);
+    flex-shrink: 0;
+}
+
+.form-file-clear {
+    background: none;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-light);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+}
+
+.form-file-clear:hover {
+    color: #dc2626;
+    border-color: #dc2626;
+    background-color: #fef2f2;
+}

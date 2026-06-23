@@ -30,7 +30,10 @@
     
     // Initialize
     function init() {
-        if (!chatMessages || !RECEIVER_ID) return;
+        if (!chatMessages || !RECEIVER_ID) {
+            console.warn('[chat] init aborted: chatMessages=' + !!chatMessages + ' RECEIVER_ID=' + RECEIVER_ID);
+            return;
+        }
         
         // Load initial messages
         loadMessages();
@@ -54,7 +57,21 @@
                 chatSidebar.classList.add('chat-sidebar--open');
             });
         }
-        
+
+        // Кнопка «Записаться на просмотр» — привязываем здесь, чтобы DOM
+        // точно был готов после init()
+        var scheduleBtn = document.getElementById('scheduleViewingBtn');
+        if (scheduleBtn) {
+            scheduleBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('[chat] schedule viewing button clicked');
+                openScheduleModal();
+            });
+        } else {
+            console.warn('[chat] scheduleViewingBtn not found in DOM');
+        }
+
         // Handle visibility change (pause polling when tab is hidden)
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
@@ -77,20 +94,23 @@
             const data = await response.json();
 
             if (data.success && data.messages.length > 0) {
+                // Парсим metadata для system-сообщений
+                const normalized = data.messages.map(normalizeSystem);
+
                 // Если на странице есть welcome-block — убираем его, заменяем реальными сообщениями
                 const welcome = chatMessages.querySelector('.chat-welcome');
                 if (welcome) welcome.remove();
 
                 if (!isPolling) {
                     // Initial load - replace all messages
-                    renderMessages(data.messages);
+                    renderMessages(normalized);
                 } else {
                     // Polling - append new messages
-                    appendMessages(data.messages);
+                    appendMessages(normalized);
                 }
 
                 // Update last message ID
-                const lastMsg = data.messages[data.messages.length - 1];
+                const lastMsg = normalized[normalized.length - 1];
                 if (lastMsg) {
                     lastMessageId = lastMsg.id;
                 }
@@ -144,17 +164,32 @@
         messages.forEach(msg => {
             // Check if message already exists
             if (document.querySelector(`[data-message-id="${msg.id}"]`)) return;
-            
+
             const msgElement = document.createElement('div');
             msgElement.innerHTML = createMessageHTML(msg);
             chatMessages.appendChild(msgElement.firstElementChild);
         });
+    }
+
+    // Парсер системного сообщения из API (обогащает metadata, если строка)
+    function normalizeSystem(msg) {
+        if (!msg.is_system) return msg;
+        if (typeof msg.metadata === 'string') {
+            try { msg.metadata = JSON.parse(msg.metadata); } catch (e) { msg.metadata = null; }
+        }
+        return msg;
     }
     
     // Create message HTML
     function createMessageHTML(msg) {
         const isMine = msg.sender_id === CURRENT_USER_ID;
         const time = formatTime(msg.created_at);
+
+        // Системные сообщения (запись/отмена просмотра) — отдельный стиль
+        if (msg.is_system) {
+            return renderSystemMessage(msg, time);
+        }
+
         // Берём первую букву имени отправителя; если её нет — фоллбек "•"
         const senderLetter = (msg.sender_name || ' ').trim().charAt(0).toUpperCase() || '•';
         const senderAvatar = msg.sender_avatar || '';
@@ -201,7 +236,185 @@
             </div>
         `;
     }
-    
+
+    // Рендер системного сообщения (запись/отмена просмотра)
+    function renderSystemMessage(msg, time) {
+        let meta = null;
+        try { meta = msg.metadata ? JSON.parse(msg.metadata) : null; } catch (e) { meta = null; }
+        const isCancel = meta && meta.kind === 'viewing_cancelled';
+        const isSchedule = meta && meta.kind === 'viewing_scheduled';
+
+        let actions = '';
+        // Кнопка «Отменить» доступна автору записи, если запись scheduled и
+        // он сейчас её видит (проверку доступа делает сервер).
+        if (isSchedule && meta && meta.viewing_id && msg.sender_id === CURRENT_USER_ID) {
+            actions = `
+                <button type="button" class="chat-system__action" data-cancel-viewing="${meta.viewing_id}">
+                    <i class="fas fa-times"></i> Отменить запись
+                </button>
+            `;
+        }
+
+        return `
+            <div class="chat-system ${isCancel ? 'chat-system--cancel' : 'chat-system--schedule'}"
+                 data-message-id="${escapeHtml(String(msg.id))}"
+                 data-viewing-id="${meta && meta.viewing_id ? meta.viewing_id : ''}">
+                <div class="chat-system__icon">
+                    <i class="fas ${isCancel ? 'fa-calendar-xmark' : 'fa-calendar-check'}"></i>
+                </div>
+                <div class="chat-system__body">
+                    <div class="chat-system__text">${escapeHtml(msg.message).replace(/\n/g, '<br>')}</div>
+                    <div class="chat-system__meta">
+                        <span class="chat-system__time">${time}</span>
+                        ${actions}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // Открыть модалку записи на просмотр
+    let scheduleModalOpen = false;
+    function openScheduleModal() {
+        if (scheduleModalOpen) return;
+        scheduleModalOpen = true;
+
+        const today = new Date();
+        const minDate = today.toISOString().slice(0, 10);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const defDate = tomorrow.toISOString().slice(0, 10);
+
+        const modalHtml = `
+            <div class="chat-schedule-modal" id="scheduleModal">
+                <div class="chat-schedule-modal__backdrop" data-close="1"></div>
+                <div class="chat-schedule-modal__dialog">
+                    <h3>Записаться на просмотр</h3>
+                    <p class="chat-schedule-modal__sub">Агент получит уведомление. Вы сможете отменить запись из чата.</p>
+                    <form id="scheduleForm">
+                        <div class="form-group">
+                            <label class="form-label">Дата</label>
+                            <input type="date" name="date" class="form-input" required min="${minDate}" value="${defDate}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Время</label>
+                            <input type="time" name="time" class="form-input" required value="14:00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Комментарий (необязательно)</label>
+                            <textarea name="note" class="form-input" rows="2" placeholder="Например: буду с семьёй, нужна парковка…"></textarea>
+                        </div>
+                        <div class="chat-schedule-modal__error" id="scheduleErr" style="display:none;"></div>
+                        <div class="chat-schedule-modal__actions">
+                            <button type="button" class="btn btn--secondary btn--sm" data-close="1">Отмена</button>
+                            <button type="submit" class="btn btn--primary btn--sm" id="scheduleSubmit">Записаться</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const modal = document.getElementById('scheduleModal');
+        modal.querySelectorAll('[data-close]').forEach(el => {
+            el.addEventListener('click', closeScheduleModal);
+        });
+        document.getElementById('scheduleForm').addEventListener('submit', submitSchedule);
+        document.getElementById('scheduleSubmit').focus();
+    }
+    function closeScheduleModal() {
+        const m = document.getElementById('scheduleModal');
+        if (m) m.remove();
+        scheduleModalOpen = false;
+    }
+    async function submitSchedule(e) {
+        e.preventDefault();
+        const errBox = document.getElementById('scheduleErr');
+        errBox.style.display = 'none';
+        const btn = document.getElementById('scheduleSubmit');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Отправляем…';
+
+        const fd = new FormData(e.target);
+        const payload = {
+            csrf_token: CSRF_HEADER,
+            agent_id:   RECEIVER_ID,
+            property_id: getPropertyIdFromForm() || 0,
+            date: fd.get('date'),
+            time: fd.get('time'),
+            note: fd.get('note') || ''
+        };
+
+        try {
+            const resp = await fetch('/php/chat/schedule_viewing.php', {
+                method: 'POST',
+                headers: csrfHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                closeScheduleModal();
+                // Сервер записал viewing + создал system-сообщение. Перезагрузим чат чтобы показать его.
+                if (typeof loadMessages === 'function') {
+                    lastMessageId = 0;
+                    loadMessages();
+                }
+            } else {
+                errBox.textContent = friendlyScheduleError(data.error);
+                errBox.style.display = '';
+            }
+        } catch (err) {
+            console.error(err);
+            errBox.textContent = 'Сетевая ошибка. Попробуйте позже.';
+            errBox.style.display = '';
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Записаться';
+        }
+    }
+    function friendlyScheduleError(code) {
+        switch (code) {
+            case 'missing_fields':  return 'Заполните дату и время.';
+            case 'bad_date_format': return 'Некорректный формат даты.';
+            case 'date_in_past':    return 'Нельзя выбрать прошедшую дату.';
+            case 'property_not_found': return 'Объект не найден.';
+            case 'agent_mismatch':  return 'Этот агент не обслуживает объект.';
+            case 'cannot_schedule_with_self': return 'Нельзя записаться к самому себе.';
+            case 'unauthorized':    return 'Сессия истекла. Войдите снова.';
+            case 'bad_csrf':        return 'Ошибка безопасности. Перезагрузите страницу.';
+            default:                return 'Не удалось создать запись. Попробуйте позже.';
+        }
+    }
+
+    // Клик «Отменить запись» в системном сообщении
+    document.addEventListener('click', async function (e) {
+        const btn = e.target.closest('[data-cancel-viewing]');
+        if (!btn) return;
+        const viewingId = btn.getAttribute('data-cancel-viewing');
+        if (!viewingId) return;
+        if (!confirm('Отменить запись на просмотр?')) return;
+        btn.disabled = true;
+        try {
+            const resp = await fetch('/php/chat/cancel_viewing.php', {
+                method: 'POST',
+                headers: csrfHeaders(),
+                body: JSON.stringify({ csrf_token: CSRF_HEADER, viewing_id: parseInt(viewingId, 10) })
+            });
+            const data = await resp.json();
+            if (data.ok) {
+                lastMessageId = 0;
+                loadMessages();
+            } else {
+                alert(friendlyChatError(data.error || 'server error', 500));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Сетевая ошибка');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
     // Send message — оптимистичный UI.
     // Сообщение показывается сразу (статус pending), POST идёт в фоне.
     // При успехе — заменяем временный id на настоящий, снимаем pending.
@@ -378,6 +591,8 @@
                         sender_name: m.sender_first_name || '',
                         sender_avatar: m.sender_avatar || '',
                         is_read: !!m.is_read,
+                        is_system: !!m.is_system,
+                        metadata: m.metadata || null,
                         property_id: null,
                         property_title: null
                     })));

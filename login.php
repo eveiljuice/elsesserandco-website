@@ -10,29 +10,37 @@ $errors = $data['errors'];
 $email = $data['email'];
 $csrf_token = $data['csrf_token'];
 
-// OAuth-провайдеры, поддерживаемые сайтом (Telegram выпилен).
-// Кнопка всегда видна; если ключ не заполнен — disabled с подсказкой.
-// 'onetap' = true — означает, что для провайдера есть отдельный OneTap-блок
-// (для VK сейчас), и обычную кнопку из основного списка НЕ показываем.
+// OAuth-провайдеры. Каждый имеет SVG-иконку (inline) — стилизованные
+// brand-кнопки вместо общих FontAwesome.
+// 'onetap' = true — отдельный OneTap-блок (VK), не дублируем в списке.
 $oauthProviders = [
     'vk' => [
-        'label'   => 'VK',
-        'icon'    => 'fab fa-vk',
+        'label'   => 'VK ID',
         'url'     => '/oauth/vk/start.php',
         'enabled' => (bool)Config::get('VK_CLIENT_ID'),
         'onetap'  => true,
+        'bg'      => '#0077FF',
+        'fg'      => '#FFFFFF',
+        'svg'     => '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.785 16.241s.288-.032.435-.193c.135-.148.131-.426.131-.426s-.019-1.302.583-1.495c.594-.19 1.356 1.27 2.165 1.831.612.422 1.077.33 1.077.33l2.165-.03s1.131-.07.595-.964c-.044-.073-.312-.658-1.611-1.872-1.359-1.269-1.177-1.063.461-3.247.998-1.331 1.398-2.144 1.273-2.493-.118-.331-.853-.244-.853-.244l-2.436.015s-.181-.025-.315.056c-.131.079-.215.262-.215.262s-.387 1.035-.905 1.916c-1.091 1.857-1.527 1.955-1.704 1.84-.412-.265-.31-1.064-.31-1.633 0-1.778.27-2.518-.526-2.711-.265-.064-.46-.107-1.137-.114-.871-.009-1.609.003-2.027.205-.278.135-.493.435-.362.452.162.022.529.099.722.364.25.341.241 1.107.241 1.107s.144 2.106-.336 2.368c-.331.18-.784-.187-1.756-1.867-.5-.864-.877-1.819-.877-1.819s-.072-.176-.201-.27c-.155-.113-.372-.149-.372-.149l-2.314.015s-.347.01-.475.162c-.114.135-.009.413-.009.413s1.812 4.249 3.864 6.39c1.881 1.962 4.018 1.833 4.018 1.833z"/></svg>',
     ],
     'yandex' => [
         'label'   => 'Яндекс',
-        'icon'    => 'fab fa-yandex',
         'url'     => '/oauth/yandex/start.php',
-        'enabled' => (bool)Config::get('YANDEX_CLIENT_ID'),
+        'enabled' => false, // отключён; код /oauth/yandex/ сохранён на случай возврата
+        'hidden'  => true,  // полностью скрыт из списка на login/register
+        'bg'      => '#FFCC00',
+        'fg'      => '#000000',
+        'svg'     => '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2.04 12c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c-1.957 0-3.785-.562-5.336-1.535l-3.616 1.115c-.477.135-.838-.36-.589-.787l1.708-2.998C3.215 16.81 2.04 14.522 2.04 12Zm10-7.46a1.46 1.46 0 0 1 1.46 1.46v6.367a1.46 1.46 0 1 1-2.92 0V6A1.46 1.46 0 0 1 12.04 4.54ZM6.5 12a1.46 1.46 0 0 0-2.92 0 1.46 1.46 0 0 0 2.92 0Zm9.6 0a1.46 1.46 0 0 0-2.92 0 1.46 1.46 0 0 0 2.92 0Zm-2.06 5.876 1.276 2.522c.16.315-.063.687-.418.687h-1.46a.5.5 0 0 1-.447-.276l-1.277-2.527a3.42 3.42 0 0 0 3.602-.406Z"/></svg>',
     ],
     'google' => [
         'label'   => 'Google',
-        'icon'    => 'fab fa-google',
         'url'     => '/oauth/google/start.php',
-        'enabled' => (bool)Config::get('GOOGLE_CLIENT_ID'),
+        'enabled' => false, // отключён; код /oauth/google/ сохранён на случай возврата
+        'hidden'  => true,  // полностью скрыт из списка на login/register
+        'bg'      => '#FFFFFF',
+        'fg'      => '#1F1F1F',
+        'border'  => '#DADCE0',
+        'svg'     => '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.34-2.1V7.07H2.18A11 11 0 0 0 1 12c0 1.78.43 3.47 1.18 4.93l3.66-2.83z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.83C6.71 7.31 9.14 5.38 12 5.38z"/></svg>',
     ],
 ];
 
@@ -182,18 +190,28 @@ if (isset($_GET['timeout'])) {
                             <?php foreach ($oauthProviders as $providerKey => $provider):
                                 // Провайдеров с OneTap-блоком (VK) не дублируем в обычном списке.
                                 if (!empty($provider['onetap'])) continue;
+                                // Полностью скрытые провайдеры (отключены администратором) — не рисуем.
+                                if (!empty($provider['hidden'])) continue;
                                 $cls = 'oauth-btn--' . htmlspecialchars($providerKey);
                                 if (!$provider['enabled']) {
                                     $cls .= ' oauth-btn--disabled';
                                 }
+                                $style  = '--oa-bg:' . htmlspecialchars($provider['bg']) . ';';
+                                $style .= '--oa-fg:' . htmlspecialchars($provider['fg']) . ';';
+                                if (!empty($provider['border'])) {
+                                    $style .= '--oa-border:' . htmlspecialchars($provider['border']) . ';';
+                                }
                             ?>
                             <?php if ($provider['enabled']): ?>
-                            <a href="<?= htmlspecialchars($provider['url']) ?>" class="oauth-btn <?= $cls ?>" aria-label="Войти через <?= htmlspecialchars($provider['label']) ?>">
-                                <i class="<?= htmlspecialchars($provider['icon']) ?>"></i><span><?= htmlspecialchars($provider['label']) ?></span>
+                            <a href="<?= htmlspecialchars($provider['url']) ?>"
+                               class="oauth-btn <?= $cls ?>"
+                               style="<?= $style ?>"
+                               aria-label="Войти через <?= htmlspecialchars($provider['label']) ?>">
+                                <span class="oauth-btn__icon"><?= $provider['svg'] ?></span><span><?= htmlspecialchars($provider['label']) ?></span>
                             </a>
                             <?php else: ?>
-                            <span class="oauth-btn <?= $cls ?>" aria-disabled="true" title="Провайдер не настроен администратором">
-                                <i class="<?= htmlspecialchars($provider['icon']) ?>"></i><span><?= htmlspecialchars($provider['label']) ?></span>
+                            <span class="oauth-btn <?= $cls ?>" style="<?= $style ?>" aria-disabled="true" title="Провайдер не настроен администратором">
+                                <span class="oauth-btn__icon"><?= $provider['svg'] ?></span><span><?= htmlspecialchars($provider['label']) ?></span>
                             </span>
                             <?php endif; ?>
                             <?php endforeach; ?>
@@ -204,7 +222,7 @@ if (isset($_GET['timeout'])) {
                 <div class="auth-image" style="background-image: url('https://images.unsplash.com/photo-1512453979798-5ea266f8880c?w=1920&q=80');">
                     <div class="auth-image__content">
                         <h2>Добро пожаловать в Elsesser & Co.</h2>
-                        <p>Откройте для себя мир элитной недвижимости Екатеринбурга</p>
+                        <p>Откройте для себя мир элитной недвижимости</p>
                     </div>
                 </div>
             </div>

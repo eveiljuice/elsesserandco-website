@@ -279,7 +279,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
             <?php if (count($images) > 1): ?>
             <div class="property-gallery__thumbs">
                 <?php foreach ($images as $index => $image): ?>
-                <img src="<?= escape($image['image_url']) ?>" 
+                <img src="<?= imgSrc($image['image_url']) ?>" 
                      alt="Фото <?= $index + 1 ?>" 
                      class="property-gallery__thumb <?= $index === 0 ? 'active' : '' ?>"
                      data-index="<?= $index ?>"
@@ -749,7 +749,7 @@ if ($reviewsCount > 0 && $avgRating > 0) {
                         <article class="property-card property-card--compact similar-slider__slide">
                             <div class="property-card__image">
                                 <a href="property.php?id=<?= $similar['id'] ?>">
-                                    <img src="<?= escape($similar['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>"
+                                    <img src="<?= imgSrc($similar['primary_image']?? 'https://via.placeholder.com/600x400') ?>"
                                          alt="" class="property-card__img" loading="lazy">
                                 </a>
                             </div>

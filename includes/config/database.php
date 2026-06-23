@@ -8,6 +8,7 @@ loadEnvironmentFile(__DIR__ . '/../../.env.local');
 loadEnvironmentFile(__DIR__ . '/../../.env');
 
 require_once __DIR__ . '/Config.php';
+require_once __DIR__ . '/../image.php';
 
 define('DB_HOST', getEnvironmentValue('REALESTATE_DB_HOST', 'localhost'));
 define('DB_NAME', getEnvironmentValue('REALESTATE_DB_NAME', 'realestate_db'));

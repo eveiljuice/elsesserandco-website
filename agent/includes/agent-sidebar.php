@@ -26,7 +26,7 @@ $pendingReviewsCount = $stmt->fetchColumn();
     <nav class="admin-nav">
         <a href="dashboard.php" class="admin-nav__item <?= $currentPage === 'dashboard.php' && empty($currentCategory) ? 'admin-nav__item--active' : '' ?>">
             <i class="fas fa-tachometer-alt"></i>
-            <span>Dashboard</span>
+            <span>Панель управления</span>
         </a>
         
         <div class="admin-nav__divider">Готовое жильё</div>
@@ -92,16 +92,23 @@ $pendingReviewsCount = $stmt->fetchColumn();
             <i class="fas fa-calendar-alt"></i>
             <span>Календарь</span>
         </a>
-        
+
         <a href="/chat.php" class="admin-nav__item">
             <i class="fas fa-comments"></i>
             <span>Сообщения</span>
+        </a>
+
+        <div class="admin-nav__divider">Аккаунт</div>
+
+        <a href="profile.php" class="admin-nav__item <?= $currentPage === 'profile.php' ? 'admin-nav__item--active' : '' ?>">
+            <i class="fas fa-user-circle"></i>
+            <span>Мой профиль</span>
         </a>
     </nav>
     
     <div class="admin-sidebar__footer">
         <div class="admin-sidebar__version">
-            v3.0 - Екатеринбург
+            v3.0 — Панель управления
         </div>
     </div>
 </aside>

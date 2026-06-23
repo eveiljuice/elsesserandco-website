@@ -16,38 +16,79 @@ $userId = getCurrentUserId();
 $userRole = getCurrentUserRole();
 
 // Получаем данные текущего пользователя
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+$stmt = $pdo->prepare("SELECT id, first_name, last_name, role, avatar, email FROM users WHERE id = ?");
 $stmt->execute([$userId]);
 $currentUser = $stmt->fetch();
 
 // Активный собеседник (унифицированный параметр: ?user= или ?agent_id= для обратной совместимости)
 $activeUserId = intval($_GET['user'] ?? $_GET['agent_id'] ?? 0);
 $activePropertyId = intval($_GET['property'] ?? $_GET['property_id'] ?? $_GET['building_id'] ?? 0);
-// Получаем список диалогов (уникальные собеседники)
+
+// Список диалогов: один проход, без N+1.
+// Сначала вытаскиваем (other_user_id, MAX(created_at)) одним запросом по индексу,
+// затем подтягиваем последнее сообщение и unread одним JOIN-ом.
 $stmt = $pdo->prepare("
-    SELECT 
-        CASE 
-            WHEN m.sender_id = ? THEN m.receiver_id 
-            ELSE m.sender_id 
-        END as other_user_id,
-        u.first_name, u.last_name, u.role, u.avatar,
-        MAX(m.created_at) as last_message_time,
-        (SELECT message FROM messages WHERE 
-            (sender_id = ? AND receiver_id = other_user_id) OR 
-            (sender_id = other_user_id AND receiver_id = ?)
-            ORDER BY created_at DESC LIMIT 1
-        ) as last_message,
-        (SELECT COUNT(*) FROM messages WHERE 
-            sender_id = other_user_id AND receiver_id = ? AND is_read = 0
-        ) as unread_count
+    SELECT
+        CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END AS other_user_id,
+        MAX(m.created_at) AS last_message_time,
+        COUNT(*) AS total_messages
     FROM messages m
-    JOIN users u ON u.id = CASE WHEN m.sender_id = ? THEN m.receiver_id ELSE m.sender_id END
     WHERE m.sender_id = ? OR m.receiver_id = ?
-    GROUP BY other_user_id, u.first_name, u.last_name, u.role, u.avatar
+    GROUP BY other_user_id
     ORDER BY last_message_time DESC
 ");
-$stmt->execute([$userId, $userId, $userId, $userId, $userId, $userId, $userId]);
-$conversations = $stmt->fetchAll();
+$stmt->execute([$userId, $userId, $userId]);
+$dialogs = $stmt->fetchAll();
+
+$conversations = [];
+if (!empty($dialogs)) {
+    $otherIds = array_column($dialogs, 'other_user_id');
+    $placeholders = implode(',', array_fill(0, count($otherIds), '?'));
+    // SQL использует 6 фиксированных ? + 2N для двух IN(...) → всего 6 + 2N параметров.
+    // Порядок: last_msg subquery (? x3) → last_msg join (? x2) → unread subquery (? x1 + N для IN) → WHERE (? xN).
+    $bindParams = [
+        $userId, $userId, $userId,   // last_msg subquery
+        $userId, $userId,            // last_msg join (sender=?, receiver=?)
+        $userId,                     // unread subquery: receiver_id = ?
+    ];
+    $bindParams = array_merge($bindParams, $otherIds, $otherIds);
+
+    // Одним запросом: профили собеседников + последние сообщения + unread count
+    $stmt = $pdo->prepare("
+        SELECT
+            u.id AS other_user_id,
+            u.first_name, u.last_name, u.role, u.avatar,
+            last_msg.message AS last_message,
+            last_msg.created_at AS last_message_time,
+            COALESCE(unread.cnt, 0) AS unread_count
+        FROM users u
+        LEFT JOIN (
+            SELECT m1.message, m1.created_at, m1.receiver_id, m1.sender_id
+            FROM messages m1
+            INNER JOIN (
+                SELECT
+                    CASE WHEN sender_id = ? THEN receiver_id ELSE sender_id END AS other_id,
+                    MAX(id) AS max_id
+                FROM messages
+                WHERE sender_id = ? OR receiver_id = ?
+                GROUP BY other_id
+            ) m2 ON m2.max_id = m1.id
+        ) last_msg ON (
+            (last_msg.sender_id = ? AND last_msg.receiver_id = ?)
+        )
+        LEFT JOIN (
+            SELECT sender_id, COUNT(*) AS cnt
+            FROM messages
+            WHERE receiver_id = ? AND is_read = 0
+              AND sender_id IN ($placeholders)
+            GROUP BY sender_id
+        ) unread ON unread.sender_id = u.id
+        WHERE u.id IN ($placeholders)
+        ORDER BY last_msg.created_at DESC
+    ");
+    $stmt->execute($bindParams);
+    $conversations = $stmt->fetchAll();
+}
 
 // Если есть активный собеседник, получаем его данные (включая avatar)
 $activeUser = null;
@@ -70,9 +111,9 @@ if (!$activeUser && !empty($conversations)) {
  */
 function renderAvatar(?string $avatarUrl, string $firstName, string $extraClass = ''): string {
     $letter = mb_strtoupper(mb_substr($firstName, 0, 1, 'UTF-8'), 'UTF-8');
+    $alt = htmlspecialchars($letter, ENT_QUOTES, 'UTF-8');
     if (!empty($avatarUrl)) {
         $safeUrl = htmlspecialchars($avatarUrl, ENT_QUOTES, 'UTF-8');
-        $alt = htmlspecialchars($letter, ENT_QUOTES, 'UTF-8');
         return '<img class="chat-avatar-img ' . $extraClass . '" src="' . $safeUrl . '" alt="' . $alt . '" data-letter="' . $alt . '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling&&(this.nextElementSibling.style.display=\'flex\');">'
              . '<span class="chat-avatar-fallback ' . $extraClass . '" data-letter="' . $alt . '">' . $alt . '</span>';
     }
@@ -115,7 +156,7 @@ if ($activeUserId) {
             LEFT JOIN property_images pi ON p.id = pi.property_id AND pi.is_primary = 1
             WHERE ((m.sender_id = ? AND m.receiver_id = ?) OR (m.sender_id = ? AND m.receiver_id = ?))
               AND m.property_id IS NOT NULL
-            GROUP BY p.id
+            GROUP BY p.id, pi.image_url
             ORDER BY last_msg_at DESC
             LIMIT 1
         ");
@@ -266,7 +307,7 @@ $pageTitle = 'Сообщения';
                     </div>
                     <div class="chat-pinned__image">
                         <?php if (!empty($pinnedProperty['primary_image'])): ?>
-                        <img src="<?= escape($pinnedProperty['primary_image']) ?>" alt="" loading="lazy">
+                        <img src="<?= imgSrc($pinnedProperty['primary_image']) ?>" alt="" loading="lazy">
                         <?php else: ?>
                         <div class="chat-pinned__image-placeholder"><i class="fas fa-home"></i></div>
                         <?php endif; ?>
@@ -304,12 +345,17 @@ $pageTitle = 'Сообщения';
                     <input type="hidden" name="property_id" value="<?= $activePropertyId ?>">
                     <?php endif; ?>
                     <div class="chat-form__input-wrapper">
-                        <textarea class="chat-form__input" 
-                                  name="message" 
-                                  placeholder="Введите сообщение..." 
+                        <textarea class="chat-form__input"
+                                  name="message"
+                                  placeholder="Введите сообщение..."
                                   rows="1"
                                   id="messageInput"></textarea>
                     </div>
+                    <?php if ($activePropertyId && $activeUserId): ?>
+                    <button type="button" class="chat-form__viewing-btn" id="scheduleViewingBtn" title="Записаться на просмотр">
+                        <i class="fas fa-calendar-plus"></i>
+                    </button>
+                    <?php endif; ?>
                     <button type="submit" class="chat-form__submit" id="sendButton">
                         <i class="fas fa-paper-plane"></i>
                     </button>

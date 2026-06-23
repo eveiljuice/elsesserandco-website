@@ -138,9 +138,17 @@ $welcomeMessage = isset($_GET['welcome']);
                             <a href="favorites.php" class="user-menu__item">
                                 <i class="fas fa-heart"></i> Избранное
                             </a>
+                            <a href="account.php" class="user-menu__item">
+                                <i class="fas fa-key"></i> Сменить пароль
+                            </a>
                             <a href="profile.php" class="user-menu__item">
                                 <i class="fas fa-user"></i> Профиль
                             </a>
+                            <?php if (!$isAgentUser && !isAdmin()): ?>
+                            <a href="agent/apply.php" class="user-menu__item">
+                                <i class="fas fa-user-plus"></i> Стать агентом
+                            </a>
+                            <?php endif; ?>
                             <?php if (isAdmin()): ?>
                             <hr>
                             <a href="admin/index.php" class="user-menu__item user-menu__item--admin">
@@ -176,16 +184,16 @@ $welcomeMessage = isset($_GET['welcome']);
             </div>
             <?php endif; ?>
 
-            <div class="dashboard-pwa card">
-                <div class="dashboard-pwa__content">
-                    <h3>Приложение и уведомления</h3>
-                    <p>Установите приложение и включите push, чтобы не пропустить важные события.</p>
+            <details class="dashboard-hint">
+                <summary class="dashboard-hint__summary" aria-label="Подсказка про мобильное приложение">
+                    <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+                    <span>Приложение и уведомления</span>
+                </summary>
+                <div class="dashboard-hint__body">
+                    <p>Сайт можно установить как приложение на домашний экран телефона или компьютера. Уведомления о новых сообщениях и заявках будут приходить даже когда вкладка закрыта.</p>
+                    <p class="dashboard-hint__sub">Чтобы установить: в меню браузера выберите «Добавить на главный экран» / «Установить приложение». Разрешение на уведомления браузер спросит автоматически.</p>
                 </div>
-                <div class="dashboard-pwa__actions">
-                    <button type="button" class="btn btn--secondary" id="pwaInstallBtn" hidden>Установить приложение</button>
-                    <button type="button" class="btn btn--primary" id="pwaPushBtn">Включить push-уведомления</button>
-                </div>
-            </div>
+            </details>
 
             <!-- Welcome Section -->
             <div class="dashboard__header">
@@ -257,6 +265,36 @@ $welcomeMessage = isset($_GET['welcome']);
                 </a>
             </div>
             <?php endif; ?>
+
+            <?php if (!$isAgentUser && !isAdmin()): ?>
+            <?php
+            // Проверим, есть ли уже активная заявка на агента
+            $agentAppStmt = $pdo->prepare("SELECT status FROM agent_applications WHERE user_id = ?");
+            $agentAppStmt->execute([$userId]);
+            $agentApp = $agentAppStmt->fetch();
+            ?>
+            <div class="agent-banner">
+                <div class="agent-banner__content">
+                    <i class="fas fa-user-plus"></i>
+                    <div>
+                        <h3>Хотите стать агентом?</h3>
+                        <p>
+                            <?php if ($agentApp && in_array($agentApp['status'], ['pending', 'reviewing'], true)): ?>
+                            Ваша заявка на рассмотрении. Мы пришлём результат на email.
+                            <?php elseif ($agentApp && $agentApp['status'] === 'rejected'): ?>
+                            Подайте заявку повторно, чтобы добавлять объекты на сайт и получать заявки.
+                            <?php else: ?>
+                            Подайте заявку, чтобы добавлять объекты на сайт, получать заявки от клиентов и вести CRM.
+                            <?php endif; ?>
+                        </p>
+                    </div>
+                </div>
+                <a href="agent/apply.php" class="btn btn--primary">
+                    <i class="fas fa-paper-plane"></i>
+                    <?= ($agentApp && in_array($agentApp['status'], ['pending', 'reviewing'], true)) ? 'Статус заявки' : 'Подать заявку' ?>
+                </a>
+            </div>
+            <?php endif; ?>
             
             <?php if ($isAgentUser): ?>
             <div class="agent-banner">
@@ -298,7 +336,7 @@ $welcomeMessage = isset($_GET['welcome']);
                         <?php foreach ($favorites as $property): ?>
                         <div class="favorite-card">
                             <a href="property.php?id=<?= $property['id'] ?>" class="favorite-card__image">
-                                <img src="<?= escape($property['primary_image'] ?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80') ?>" 
+                                <img src="<?= imgSrc($property['primary_image']?? 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80') ?>" 
                                      alt="<?= escape($property['title']) ?>">
                             </a>
                             <div class="favorite-card__body">
@@ -469,10 +507,9 @@ $welcomeMessage = isset($_GET['welcome']);
         });
         let deferredPrompt;
         // (install-prompt логика вынесена в js/pwa.js — общий обработчик для всех страниц)
+        // (pwaPushBtn убран — push-уведомления в приложении пока не подключены,
+        //  вместо кнопки на dashboard маленькая раскрывающаяся подсказка)
 
-        document.getElementById('pwaPushBtn')?.addEventListener('click', () => {
-            if (window.EcoPush) EcoPush.enable().then(() => alert('Push включены')).catch(() => alert('Не удалось'));
-        });
         // User menu toggle
         const userMenuToggle = document.getElementById('userMenuToggle');
         const userMenuDropdown = document.getElementById('userMenuDropdown');

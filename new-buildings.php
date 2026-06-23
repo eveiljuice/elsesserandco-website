@@ -279,7 +279,7 @@ $pageTitle = 'Новостройки Екатеринбурга';
                 <article class="property-card">
                     <div class="property-card__image">
                         <a href="new-building.php?id=<?= $b['id'] ?>">
-                            <img src="<?= escape($b['primary_image'] ?? 'https://via.placeholder.com/600x400') ?>" 
+                            <img src="<?= imgSrc($b['primary_image']?? 'https://via.placeholder.com/600x400') ?>" 
                                  alt="<?= escape($b['name']) ?>" class="property-card__img" loading="lazy">
                         </a>
                         <?php if ($b['featured']): ?>

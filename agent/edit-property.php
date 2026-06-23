@@ -798,7 +798,7 @@ $created = isset($_GET['created']);
                     <div class="image-preview-grid">
                         <?php foreach ($images as $image): ?>
                         <div class="image-preview <?= $image['is_primary'] ? 'image-preview--primary' : '' ?>">
-                            <img src="<?= escape($image['image_url']) ?>" alt="">
+                            <img src="<?= imgSrc($image['image_url']) ?>" alt="">
                             <?php if ($image['is_primary']): ?>
                             <span class="image-preview__badge">Главное</span>
                             <?php endif; ?>

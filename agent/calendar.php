@@ -76,7 +76,8 @@ $weekEnd = date('Y-m-d', strtotime('sunday this week', strtotime($currentDate)))
 
 // Просмотры на неделю
 $stmt = $pdo->prepare("
-    SELECT v.*, p.title as property_title, p.location
+    SELECT v.*, p.title as property_title, p.location,
+           (v.client_id IS NOT NULL) AS from_chat
     FROM viewings v
     JOIN properties p ON v.property_id = p.id
     WHERE v.agent_id = ? AND v.viewing_date BETWEEN ? AND ?
@@ -174,10 +175,26 @@ $pageTitle = 'Календарь просмотров';
                             <div class="calendar-day__empty">Нет просмотров</div>
                             <?php else: ?>
                             <?php foreach ($dayViewings as $viewing): ?>
-                            <div class="calendar-event calendar-event--<?= $viewing['status'] ?>">
-                                <div class="calendar-event__time"><?= date('H:i', strtotime($viewing['viewing_time'])) ?></div>
-                                <div class="calendar-event__client"><?= escape($viewing['client_name']) ?></div>
+                            <div class="calendar-event calendar-event--<?= $viewing['status'] ?><?= !empty($viewing['from_chat']) ? ' calendar-event--from-chat' : '' ?>">
+                                <div class="calendar-event__time">
+                                    <?= date('H:i', strtotime($viewing['viewing_time'])) ?>
+                                    <?php if (!empty($viewing['from_chat'])): ?>
+                                    <span class="calendar-event__badge" title="Запись создана клиентом из чата"><i class="fas fa-comments"></i></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="calendar-event__client"><?= escape($viewing['client_name']) ?>
+                                    <?php if (!empty($viewing['client_phone'])): ?>
+                                    <a href="tel:<?= escape($viewing['client_phone']) ?>" class="calendar-event__phone" title="Позвонить">
+                                        <i class="fas fa-phone"></i>
+                                    </a>
+                                    <?php endif; ?>
+                                </div>
                                 <div class="calendar-event__property"><?= escape($viewing['property_title']) ?></div>
+                                <?php if (!empty($viewing['from_chat']) && !empty($viewing['client_id'])): ?>
+                                <a href="/chat.php?user=<?= (int)$viewing['client_id'] ?>&property=<?= (int)$viewing['property_id'] ?>" class="calendar-event__chat-link">
+                                    <i class="fas fa-comments"></i> Открыть чат
+                                </a>
+                                <?php endif; ?>
                                 <div class="calendar-event__actions">
                                     <form method="POST" style="display: inline;">
                                         <input type="hidden" name="csrf_token" value="<?= generateCSRFToken() ?>">

@@ -49,7 +49,7 @@ $newInquiries = $stmt->fetchColumn();
                 <i class="fas fa-chevron-down"></i>
             </button>
             <div class="admin-user-menu__dropdown" id="userMenuDropdown">
-                <a href="/dashboard.php" class="admin-user-menu__item">
+                <a href="/agent/profile.php" class="admin-user-menu__item">
                     <i class="fas fa-user"></i> Мой профиль
                 </a>
                 <a href="/properties.php" class="admin-user-menu__item">

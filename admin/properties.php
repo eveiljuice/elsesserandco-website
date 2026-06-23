@@ -271,7 +271,7 @@ $pageTitleFull = 'Готовое жильё — ' . $pageTitle;
                             <tr>
                                 <td><?= $property['id'] ?></td>
                                 <td>
-                                    <img src="<?= escape($property['primary_image'] ?? 'https://via.placeholder.com/100x70') ?>" 
+                                    <img src="<?= imgSrc($property['primary_image']?? 'https://via.placeholder.com/100x70') ?>" 
                                          alt=""
                                          class="admin-table__image">
                                 </td>
