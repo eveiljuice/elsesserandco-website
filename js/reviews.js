@@ -225,11 +225,12 @@
             
             const form = e.target;
             const comment = form.querySelector('textarea[name="comment"]')?.value || '';
+            const name = form.querySelector('input[name="name"]')?.value || '';
             const submitBtn = form.querySelector('button[type="submit"]');
-            
+
             submitBtn.disabled = true;
             submitBtn.textContent = 'Отправка...';
-            
+
             try {
                 const response = await fetch('/php/reviews/add_review.php', {
                     method: 'POST',
@@ -238,7 +239,8 @@
                         property_id: this.propertyId,
                         agent_id: this.agentId,
                         rating: this.selectedRating,
-                        comment: comment
+                        comment: comment,
+                        name: name
                     })
                 });
                 
